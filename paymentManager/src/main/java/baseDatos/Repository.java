@@ -18,25 +18,33 @@ public class Repository {
     }
     private static final Logger logger = Logger.getLogger(Repository.class.getName());
     private static String workingDirectory = (new File("")).getAbsolutePath();
-    private static File directoryFile = new File(
-        workingDirectory + "/paymentManager/src/main/java/baseDatos/temp"
-    );
+    private static String tempDirectoryPath =  workingDirectory + "/paymentManager/src/main/java/baseDatos/temp/";
 
-    public static void createDirectory() {
-        if (!directoryFile.exists()) {
-            directoryFile.mkdir();
+    public static void createDirectory(File directory) {
+        if (!directory.exists()) {
+            directory.mkdir();
         }
     }
 
-    public static boolean save(WithId object) {
+    public static void createTempDirectory() {
+        createDirectory(new File(tempDirectoryPath));
+    }
+
+    private static String getObjectFilePath(WithId object) {
         String objectClass = object.getClass().getSimpleName();
         String objectId = object.getId();
-        String fileName = objectClass + objectId;
+        String classPath = tempDirectoryPath + objectClass;
+        createDirectory(new File(classPath));
+        return classPath + "/" + objectId;
+    }
 
-        File file = new File(directoryFile.getAbsolutePath() + "/" + fileName);
+    public static boolean save(WithId object) {
+        String objectPath = getObjectFilePath(object);
+
+        File file = new File(objectPath);
         if (!file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-                    new FileOutputStream(directoryFile.getAbsolutePath() + "/" + fileName))) {
+                    new FileOutputStream(objectPath))) {
                 objectOutputStream.writeObject(object);
                 return true;
             } catch (IOException e) {
@@ -49,10 +57,10 @@ public class Repository {
         return false;
     }
 
-    public static WithId load(String path) {
+    public static WithId load(String objectClass, String id) {
         WithId object = null;
         try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream
-                (directoryFile.getAbsolutePath() + "/" + path))) {
+                (tempDirectoryPath + "/" + objectClass + "/" + id))) {
             object = (WithId) objectInputStream.readObject();
         } catch (FileNotFoundException e) {
             logger.warning("File not found");
@@ -62,8 +70,8 @@ public class Repository {
         return object;
     }
 
-    public static boolean delete(String path) {
-        File file = new File(directoryFile.getAbsolutePath() + path);
+    public static boolean delete(WithId object) {
+        File file = new File(getObjectFilePath(object));
         if (file.exists()) {
             try {
                 Files.delete(file.toPath());
@@ -78,13 +86,11 @@ public class Repository {
     }
 
     public static boolean update (WithId object) {
-        String objectClass = object.getClass().getSimpleName();
-        String objectId = object.getId();
-        String fileName = objectClass + objectId;
-        File file = new File(directoryFile.getAbsolutePath() + "/" + fileName);
+        String fileName = getObjectFilePath(object);
+        File file = new File(tempDirectoryPath + fileName);
         if (file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-                    new FileOutputStream(directoryFile.getAbsolutePath() + "/" + fileName))) {
+                    new FileOutputStream(tempDirectoryPath + fileName))) {
                 objectOutputStream.writeObject(object);
                 return true;
             } catch (IOException e) {
