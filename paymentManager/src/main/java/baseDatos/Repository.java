@@ -1,5 +1,6 @@
 package baseDatos;
 import java.io.File;
+import java.nio.file.Files;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -27,17 +28,25 @@ public class Repository {
         }
     }
 
-    public static void save(WithId object) {
+    public static boolean save(WithId object) {
         String objectClass = object.getClass().getSimpleName();
         String objectId = object.getId();
         String fileName = objectClass + objectId;
-        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-                new FileOutputStream(directoryFile.getAbsolutePath() + "/" + fileName))) {
 
-            objectOutputStream.writeObject(object);
-        }  catch (IOException e) {
-            e.printStackTrace();
+        File file = new File(directoryFile.getAbsolutePath() + "/" + fileName);
+        if (!file.exists()) {
+            try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
+                    new FileOutputStream(directoryFile.getAbsolutePath() + "/" + fileName))) {
+                objectOutputStream.writeObject(object);
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
         }
+
+        logger.warning("File already exists, use update method instead");
+        return false;
     }
 
     public static WithId load(String path) {
@@ -51,5 +60,38 @@ public class Repository {
             e.printStackTrace();
         }
         return object;
+    }
+
+    public static boolean delete(String path) {
+        File file = new File(directoryFile.getAbsolutePath() + path);
+        if (file.exists()) {
+            try {
+                Files.delete(file.toPath());
+                return true;
+            } catch (IOException | SecurityException e) {
+                logger.warning("Failed to delete file: " + e.getMessage());
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean update (WithId object) {
+        String objectClass = object.getClass().getSimpleName();
+        String objectId = object.getId();
+        String fileName = objectClass + objectId;
+        File file = new File(directoryFile.getAbsolutePath() + "/" + fileName);
+        if (file.exists()) {
+            try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
+                    new FileOutputStream(directoryFile.getAbsolutePath() + "/" + fileName))) {
+                objectOutputStream.writeObject(object);
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return false;
     }
 }
