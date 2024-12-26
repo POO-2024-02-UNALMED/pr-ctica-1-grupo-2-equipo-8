@@ -1,12 +1,12 @@
 package uiMain;
 import gestorAplicacion.test.Test;
 import gestorAplicacion.customers.Admin;
-
+import gestorAplicacion.customers.DocumentType;
 import baseDatos.Repository;
 
 
 public class Main {
-    
+
     static void logObject(Object object) {
         System.out.println(object);
     }
@@ -22,9 +22,23 @@ public class Main {
         logObject(test2.getAge());
         logObject(test2);
 
-        Admin admin = new Admin("John Doe", "jdoe@gmail.com", "AVERYSECUREPASSWORD");
+        Admin admin = new Admin(
+            "John Doe",
+            "jdoe@gmail.com",
+            "AVERYSECUREPASSWORD",
+            DocumentType.CC,
+            "1234567890"
+        );
+        Repository.delete(admin);
+
         logObject(Repository.save(admin));
-        Admin admin2 = (Admin) Repository.load("Admin", admin.getId());
+        Admin admin2 = (Admin) Repository.load(
+            "Admin",
+            gestorAplicacion.WithId.createId(
+                "jdoe@gmail.com",
+                "AVERYSECUREPASSWORD"
+            )
+        );
         logObject(admin2.getName());
         logObject(admin2.getEmail());
         logObject(admin2.getPassword());
@@ -32,6 +46,5 @@ public class Main {
 
         /* remove */
         Repository.delete(test);
-        // Repository.delete(admin);
     }
 }

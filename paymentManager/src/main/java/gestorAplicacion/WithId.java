@@ -22,7 +22,7 @@ public abstract class WithId implements Serializable {
         this.id = id;
     }
 
-    protected static String createId(String attribute1, String attribute2) {
+    public static String createId(String attribute1, String attribute2) {
         Logger logger = Logger.getLogger(WithId.class.getName());
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
