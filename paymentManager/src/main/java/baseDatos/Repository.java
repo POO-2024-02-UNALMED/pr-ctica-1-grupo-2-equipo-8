@@ -1,16 +1,15 @@
 package baseDatos;
 import java.io.File;
-import java.nio.file.Files;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.util.logging.Logger;
 
 import gestorAplicacion.WithId;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
 
 public class Repository {
     private Repository() {
@@ -18,7 +17,8 @@ public class Repository {
     }
     private static final Logger logger = Logger.getLogger(Repository.class.getName());
     private static String workingDirectory = (new File("")).getAbsolutePath();
-    private static String tempDirectoryPath =  workingDirectory + "/paymentManager/src/main/java/baseDatos/temp/";
+    private static String tempDirectoryPath = workingDirectory + (new File("/src/main/java/baseDatos/temp/")).getPath(); 
+    //private static String tempDirectoryPath =  workingDirectory + "/paymentManager/src/main/java/baseDatos/temp/";
 
     public static void createDirectory(File directory) {
         if (!directory.exists()) {
@@ -33,14 +33,18 @@ public class Repository {
     private static String getObjectFilePath(WithId object) {
         String objectClass = object.getClass().getSimpleName();
         String objectId = object.getId();
-        String classPath = tempDirectoryPath + objectClass;
+        String classPath = new File(
+        tempDirectoryPath +"/"+ objectClass).getPath();
         createDirectory(new File(classPath));
-        return classPath + "/" + objectId;
+        
+        return new File( classPath + "/" + objectId).getPath();
+
     }
 
     public static boolean save(WithId object) {
+        
         String objectPath = getObjectFilePath(object);
-
+        System.out.println(objectPath);
         File file = new File(objectPath);
         if (!file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
@@ -59,8 +63,11 @@ public class Repository {
 
     public static WithId load(String objectClass, String id) {
         WithId object = null;
+        String directory = new File( tempDirectoryPath + "/" + objectClass + "/" + id).getPath();
+        System.out.println(directory);
         try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream
-                (tempDirectoryPath + "/" + objectClass + "/" + id))) {
+                (directory))) {
+                    
             object = (WithId) objectInputStream.readObject();
         } catch (FileNotFoundException e) {
             logger.warning("File not found");

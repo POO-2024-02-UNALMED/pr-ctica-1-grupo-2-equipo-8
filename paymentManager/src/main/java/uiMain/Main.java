@@ -1,8 +1,11 @@
 package uiMain;
-import gestorAplicacion.test.Test;
-import gestorAplicacion.customers.Admin;
-import gestorAplicacion.customers.DocumentType;
 import baseDatos.Repository;
+import gestorAplicacion.Plan;
+import gestorAplicacion.customers.Admin;
+import gestorAplicacion.customers.Card;
+import gestorAplicacion.customers.DocumentType;
+import gestorAplicacion.customers.User;
+import gestorAplicacion.test.Test;
 
 
 public class Main {
@@ -29,7 +32,7 @@ public class Main {
             DocumentType.CC,
             "1234567890"
         );
-        Repository.delete(admin);
+        //Repository.delete(admin);
 
         logObject(Repository.save(admin));
         Admin admin2 = (Admin) Repository.load(
@@ -45,6 +48,20 @@ public class Main {
         logObject(admin2);
 
         /* remove */
-        Repository.delete(test);
+        //Repository.delete(test);
+
+        Plan plan = new Plan("1","Plan1","Plan1",100,1,new Admin[]{admin});
+        Repository.save(plan);
+
+        User juanito = new User("Juanito", "iasbdc", "123", DocumentType.CC, "1234567890");
+        Repository.save(juanito);
+        Card card = new Card("1234567890", 400, 123, "26/35", "1234567890");
+        juanito.addCreditCard(card);
+
+        logObject(juanito.addSubscription());
     }
+
+    
+
 }
+

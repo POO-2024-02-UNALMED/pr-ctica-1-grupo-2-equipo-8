@@ -3,11 +3,11 @@ package gestorAplicacion.customers;
 import gestorAplicacion.WithId;
 
 public class Customer extends WithId {
-    private String name;
-    private String email;
-    private String password;
-    private DocumentType documentType;
-    private String documentNumber;
+    protected String name;
+    protected String email;
+    protected String password;
+    protected DocumentType documentType;
+    protected String documentNumber;
 
     public Customer(
         String name,
