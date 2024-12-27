@@ -3,20 +3,18 @@ package gestorAplicacion.transactions;
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
 
-public class Transaccion extends WithId {
+public class Transaction extends WithId {
     private String name;
     private String description;
     private double price;
     private int duration;
     
-    public Transaccion(String id, String name, String description, double price, int duration, Admin[] admins) {
+    public Transaction(String id, String name, String description, double price, int duration, Admin[] admins) {
         super(id);
         this.name = name;
         this.description = description;
         this.price = price;
         this.duration = duration;
-
-        
     }
     
 }

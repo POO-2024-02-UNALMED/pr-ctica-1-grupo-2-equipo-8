@@ -3,6 +3,8 @@ import baseDatos.Repository;
 import gestorAplicacion.customers.Admin;
 import gestorAplicacion.customers.DocumentType;
 import gestorAplicacion.customers.User;
+import gestorAplicacion.gateways.Custom;
+import gestorAplicacion.gateways.IAdapter;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.transactions.Card;
 
@@ -14,11 +16,9 @@ public class Main {
     }
 
     public static void main(String[] args) {
-
         Repository.createTempDirectory();
 
         Admin admin = new Admin(
-            "John Doe",
             "jdoe@gmail.com",
             "AVERYSECUREPASSWORD",
             DocumentType.CC,
@@ -32,7 +32,6 @@ public class Main {
                 "AVERYSECUREPASSWORD"
             )
         );
-        logObject(admin2.getName());
         logObject(admin2.getEmail());
         logObject(admin2.getPassword());
         logObject(admin2);
@@ -40,13 +39,14 @@ public class Main {
         Plan plan = new Plan("1","Plan1","Plan1",100,1,new Admin[]{admin});
         Repository.save(plan);
 
-        User juanito = new User("Juanito", "iasbdc", "123", DocumentType.CC, "1234567890");
-        Repository.save(juanito);
-        Card card = new Card("1234567890", 400, 123, "26/35", "1234567890");
-        juanito.addCreditCard(card);
+        IAdapter custom = new Custom();
 
-        logObject(juanito.addSubscription());
-        Repository.delete(juanito);
+        User janet = new User("janetdoe@gmail.com", "STRONGPASS", DocumentType.CC, "1234567890");
+        Card card = custom.addCreditCard("1234567890", janet.getEmail(), "26/35", "123");
+        janet.addCreditCard(card);
+
+        logObject(janet.addSubscription());
+        Repository.save(janet);
     }
 }
 

@@ -1,31 +1,46 @@
 package gestorAplicacion.transactions;
-import gestorAplicacion.Notificacion;
+
 import gestorAplicacion.WithId;
 
 public class Card extends WithId {
+    private String dueDate;
+    private String lastFour;
+    private Franchise franchise;
+    private final String TOKEN;
 
-    private  double saldo;
-    private int cvs;
-    private String fechaVencimiento;
-    private String number;
-
-    public Card(String id, double saldo, int cvs, String fechaVencimiento, String number) {
-        super(id);
-        this.saldo = saldo;
-        this.cvs = cvs;
-        this.fechaVencimiento = fechaVencimiento;
-        this.number = number;
-    }  
-
-    
-    public boolean validarSaldo(double precio) {
-        if (saldo > precio) {
-            return true;
-            
-        }
-        else{
-            Notificacion.sendNotification(true, "Saldo insuficiente", "No se puede realizar la transaccion");}
-        return false;
+    public Card( String lastFour, String dueDate, Franchise franchise, String token) {
+        super(WithId.createId(dueDate, lastFour));
+        this.dueDate = dueDate;
+        this.lastFour = lastFour;
+        this.franchise = franchise;
+        this.TOKEN = token;
     }
-    
+
+    public String getDueDate() {
+        return dueDate;
+    }
+
+    public String getLastFour() {
+        return lastFour;
+    }
+
+    public Franchise getFranchise() {
+        return franchise;
+    }
+
+    public String getTOKEN() {
+        return TOKEN;
+    }
+
+    public static Franchise getFranchise(String number) {
+        if (number.startsWith("4")) {
+            return Franchise.VISA;
+        } else if (number.startsWith("5")) {
+            return Franchise.MASTERCARD;
+        } else if (number.startsWith("6")) {
+            return Franchise.DISCOVER;
+        } else {
+            return Franchise.UNKNOWN;
+        }
+    }
 }
