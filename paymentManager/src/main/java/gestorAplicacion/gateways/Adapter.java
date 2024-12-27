@@ -1,6 +1,7 @@
 package gestorAplicacion.gateways;
 
 import gestorAplicacion.transactions.Card;
+import gestorAplicacion.transactions.Transaction;
 
 public class Adapter {
     private final Gateway gateway;
@@ -20,5 +21,18 @@ public class Adapter {
                 throw new AssertionError();
         }
     }
+    public void pay(Transaction transaction) {
+        switch (gateway) {
+            case Gateway.EPAYCO, Gateway.STRIPE, Gateway.MERCADOPAGO:
+                break;
+            case Gateway.CUSTOM:
+                new Custom().pay(transaction);
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    
     
 }
