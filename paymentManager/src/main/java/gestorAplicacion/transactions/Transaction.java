@@ -1,25 +1,23 @@
-package gestorAplicacion;
+package gestorAplicacion.transactions;
 
 import java.util.List;
 
+import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
+import gestorAplicacion.plan.Suscription;
 
-
-public class Plan extends WithId{
-    
+public class Transaction extends WithId {
     private String name;
     private String description;
     private double price;
     private int duration;
-    private Admin[] admins;
     
-    public Plan(String id, String name, String description, double price, int duration, Admin[] admins) {
+    public Transaction(String id, String name, String description, double price, int duration, Admin[] admins) {
         super(id);
         this.name = name;
         this.description = description;
         this.price = price;
         this.duration = duration;
-        this.admins = admins;
     }
  
     public static void mostrarSuscripciones(List<Suscription> suscripciones) {

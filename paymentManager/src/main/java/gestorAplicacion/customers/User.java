@@ -3,20 +3,20 @@ package gestorAplicacion.customers;
 import java.util.ArrayList;
 import java.util.List;
 
-import gestorAplicacion.Plan;
-import gestorAplicacion.Suscription;
+import gestorAplicacion.plan.Plan;
+import gestorAplicacion.plan.Suscription;
+import gestorAplicacion.transactions.Card;
 
 public class User extends Customer{
 
-    List<Card> credicards = new ArrayList<>();
+    private List<Card> creditCards;
 
-    public User(String name, String email, String password, DocumentType documentType, String documentId) {
-        super(name, email, password, documentType, documentId);
-
+    public User(String email, String password, DocumentType documentType, String documentId) {
+        super(email, password, documentType, documentId);
+        creditCards = new ArrayList<Card>();
     }
 
-    public Suscription addSubscription() {
-        Plan plan = new Plan("1", "Plan1", "Plan1", 100, 1, new Admin[]{new Admin("John Doe", "dafwa", "", DocumentType.CC, "1234567890")});
+    public Suscription addSubscription(Plan plan) {;
        if (hasCreditCard()) {
            Suscription suscription = new Suscription("1", "Plan1", "Plan1", 100, 1);
               suscription.procesarPago(this);
@@ -25,15 +25,11 @@ public class User extends Customer{
        return null;
     }
 
-    private boolean hasCreditCard() {
-        // TODO implement here
-        return true;
+    public boolean hasCreditCard() {
+        return !creditCards.isEmpty();
     }
 
     public void addCreditCard(Card card) {
-        credicards.add(card);
+        creditCards.add(card);
     }
-
-     
-    
 }

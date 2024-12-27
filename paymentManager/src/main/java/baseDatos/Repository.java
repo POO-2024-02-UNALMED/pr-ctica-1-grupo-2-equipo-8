@@ -15,10 +15,14 @@ public class Repository {
     private Repository() {
         // Private constructor to hide the implicit public one
     }
-    private static final Logger logger = Logger.getLogger(Repository.class.getName());
-    private static String workingDirectory = (new File("")).getAbsolutePath();
-    private static String tempDirectoryPath = workingDirectory + (new File("/src/main/java/baseDatos/temp/")).getPath(); 
-    //private static String tempDirectoryPath =  workingDirectory + "/paymentManager/src/main/java/baseDatos/temp/";
+
+    private static final Logger LOGGER = Logger.getLogger(Repository.class.getName());
+    private static final String ROOT_DIRECTORY = System.getProperty("user.dir");
+    private static final String OS = System.getProperty("os.name");
+    private static final String TEMP_DIRECTORY_RELATIVE_PATH = OS.contains("Mac")
+        ? "/PaymentManager/src/main/java/baseDatos/temp/"
+        : "/src/main/java/baseDatos/temp/";
+    private static final String TEMP_DIRECTORY_ABS_PATH_STRING = ROOT_DIRECTORY + (new File(TEMP_DIRECTORY_RELATIVE_PATH)).getPath();
 
     public static void createDirectory(File directory) {
         if (!directory.exists()) {
@@ -27,24 +31,20 @@ public class Repository {
     }
 
     public static void createTempDirectory() {
-        createDirectory(new File(tempDirectoryPath));
+        createDirectory(new File(TEMP_DIRECTORY_ABS_PATH_STRING));
     }
 
     private static String getObjectFilePath(WithId object) {
         String objectClass = object.getClass().getSimpleName();
         String objectId = object.getId();
-        String classPath = new File(
-        tempDirectoryPath +"/"+ objectClass).getPath();
+        String classPath = new File(TEMP_DIRECTORY_ABS_PATH_STRING + File.separator + objectClass).getPath();
         createDirectory(new File(classPath));
-        
-        return new File( classPath + "/" + objectId).getPath();
 
+        return new File(classPath + File.separator + objectId).getPath();
     }
 
     public static boolean save(WithId object) {
-        
         String objectPath = getObjectFilePath(object);
-        System.out.println(objectPath);
         File file = new File(objectPath);
         if (!file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
@@ -57,20 +57,19 @@ public class Repository {
             }
         }
 
-        logger.warning("File already exists, use update method instead");
+        LOGGER.warning("File already exists, use update method instead");
         return false;
     }
 
     public static WithId load(String objectClass, String id) {
         WithId object = null;
-        String directory = new File( tempDirectoryPath + "/" + objectClass + "/" + id).getPath();
-        System.out.println(directory);
+        String directory = new File(TEMP_DIRECTORY_ABS_PATH_STRING + File.separator + objectClass + File.separator + id).getPath();
         try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream
                 (directory))) {
-                    
+
             object = (WithId) objectInputStream.readObject();
         } catch (FileNotFoundException e) {
-            logger.warning("File not found");
+            LOGGER.warning("File not found");
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -84,7 +83,7 @@ public class Repository {
                 Files.delete(file.toPath());
                 return true;
             } catch (IOException | SecurityException e) {
-                logger.warning("Failed to delete file: " + e.getMessage());
+                LOGGER.warning("Failed to delete file: " + e.getMessage());
                 return false;
             }
         }
@@ -94,10 +93,10 @@ public class Repository {
 
     public static boolean update (WithId object) {
         String fileName = getObjectFilePath(object);
-        File file = new File(tempDirectoryPath + fileName);
+        File file = new File(TEMP_DIRECTORY_ABS_PATH_STRING + fileName);
         if (file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-                    new FileOutputStream(tempDirectoryPath + fileName))) {
+                    new FileOutputStream(TEMP_DIRECTORY_ABS_PATH_STRING + fileName))) {
                 objectOutputStream.writeObject(object);
                 return true;
             } catch (IOException e) {
