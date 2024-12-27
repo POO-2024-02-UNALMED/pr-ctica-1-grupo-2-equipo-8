@@ -3,8 +3,9 @@ package gestorAplicacion.customers;
 import java.util.ArrayList;
 import java.util.List;
 
-import gestorAplicacion.Plan;
-import gestorAplicacion.Suscription;
+import gestorAplicacion.plan.Plan;
+import gestorAplicacion.plan.Suscription;
+import gestorAplicacion.transactions.Card;
 
 public class User extends Customer{
 

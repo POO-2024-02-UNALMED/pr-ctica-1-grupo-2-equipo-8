@@ -1,5 +1,6 @@
-package gestorAplicacion;
+package gestorAplicacion.plan;
 
+import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
 
 

@@ -1,4 +1,4 @@
-package gestorAplicacion.customers;
+package gestorAplicacion.transactions;
 import gestorAplicacion.Notificacion;
 import gestorAplicacion.WithId;
 

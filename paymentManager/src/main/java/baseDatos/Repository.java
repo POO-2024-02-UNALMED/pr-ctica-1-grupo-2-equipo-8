@@ -15,10 +15,14 @@ public class Repository {
     private Repository() {
         // Private constructor to hide the implicit public one
     }
+
     private static final Logger logger = Logger.getLogger(Repository.class.getName());
-    private static String workingDirectory = (new File("")).getAbsolutePath();
-    private static String tempDirectoryPath = workingDirectory + (new File("/src/main/java/baseDatos/temp/")).getPath(); 
-    //private static String tempDirectoryPath =  workingDirectory + "/paymentManager/src/main/java/baseDatos/temp/";
+    private static String rootDirectory = System.getProperty("user.dir");
+    private static String operativeSystem = System.getProperty("os.name");
+    private static String tempDirectoryRelativePath = operativeSystem.contains("Mac")
+        ? "/PaymentManager/src/main/java/baseDatos/temp/"
+        : "/src/main/java/baseDatos/temp/";
+    private static String tempDirectoryPath = rootDirectory + (new File(tempDirectoryRelativePath)).getPath();
 
     public static void createDirectory(File directory) {
         if (!directory.exists()) {
@@ -33,18 +37,14 @@ public class Repository {
     private static String getObjectFilePath(WithId object) {
         String objectClass = object.getClass().getSimpleName();
         String objectId = object.getId();
-        String classPath = new File(
-        tempDirectoryPath +"/"+ objectClass).getPath();
+        String classPath = new File(tempDirectoryPath + File.separator + objectClass).getPath();
         createDirectory(new File(classPath));
-        
-        return new File( classPath + "/" + objectId).getPath();
 
+        return new File(classPath + File.separator + objectId).getPath();
     }
 
     public static boolean save(WithId object) {
-        
         String objectPath = getObjectFilePath(object);
-        System.out.println(objectPath);
         File file = new File(objectPath);
         if (!file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
@@ -63,11 +63,10 @@ public class Repository {
 
     public static WithId load(String objectClass, String id) {
         WithId object = null;
-        String directory = new File( tempDirectoryPath + "/" + objectClass + "/" + id).getPath();
-        System.out.println(directory);
+        String directory = new File(tempDirectoryPath + File.separator + objectClass + File.separator + id).getPath();
         try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream
                 (directory))) {
-                    
+
             object = (WithId) objectInputStream.readObject();
         } catch (FileNotFoundException e) {
             logger.warning("File not found");

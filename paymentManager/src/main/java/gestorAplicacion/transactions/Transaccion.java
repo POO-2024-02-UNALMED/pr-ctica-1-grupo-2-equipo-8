@@ -1,6 +1,7 @@
-package gestorAplicacion.customers;
+package gestorAplicacion.transactions;
 
 import gestorAplicacion.WithId;
+import gestorAplicacion.customers.Admin;
 
 public class Transaccion extends WithId {
     private String name;
