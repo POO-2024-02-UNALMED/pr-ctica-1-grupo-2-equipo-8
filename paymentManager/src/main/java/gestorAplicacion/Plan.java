@@ -1,5 +1,7 @@
 package gestorAplicacion;
 
+import java.util.List;
+
 import gestorAplicacion.customers.Admin;
 
 
@@ -18,5 +20,16 @@ public class Plan extends WithId{
         this.price = price;
         this.duration = duration;
         this.admins = admins;
+    }
+ 
+    public static void mostrarSuscripciones(List<Suscription> suscripciones) {
+        for (Suscription suscription : suscripciones) {
+            System.out.println("ID: " + suscription.getId());
+            System.out.println("Nombre: " + suscription.getName());
+            System.out.println("Descripción: " + suscription.getDescription());
+            System.out.println("Precio: " + suscription.getPrice());
+            System.out.println("Duración: " + suscription.getDuration());
+            System.out.println("-------------------------");
+        }
     }
 }
