@@ -18,6 +18,16 @@ public class Main {
     public static void main(String[] args) {
         Repository.createTempDirectory();
 
+        Plan advanced = new Plan("Advanced","Books, Music, Videos",100);
+        Plan smart = new Plan("Smart","Books, Music",80);
+        Plan basic = new Plan("Basic","Videos",50);
+        Plan essential = new Plan("Essential","Music",50);
+        Plan [] list = {advanced,smart,basic,essential};
+        for (int i = 0; i < list.length; i++) {
+            logObject(Repository.save(list[i]));
+        }
+
+
         Admin admin = new Admin(
             "jdoe@gmail.com",
             "AVERYSECUREPASSWORD",
@@ -36,16 +46,14 @@ public class Main {
         logObject(admin2.getPassword());
         logObject(admin2);
 
-        Plan plan = new Plan("1","Plan1","Plan1",100,1,new Admin[]{admin});
-        Repository.save(plan);
-
         IAdapter custom = new Custom();
 
         User janet = new User("janetdoe@gmail.com", "STRONGPASS", DocumentType.CC, "1234567890");
         Card card = custom.addCreditCard("1234567890", janet.getEmail(), "26/35", "123");
         janet.addCreditCard(card);
 
-        logObject(janet.addSubscription());
+        logObject(janet.addSubscription(advanced));
+        logObject(janet.hasCreditCard());
         Repository.save(janet);
     }
 }

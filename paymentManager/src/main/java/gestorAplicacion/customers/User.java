@@ -16,8 +16,7 @@ public class User extends Customer{
         creditCards = new ArrayList<Card>();
     }
 
-    public Suscription addSubscription() {
-        Plan plan = new Plan("1", "Plan1", "Plan1", 100, 1, new Admin[]{new Admin("dafwa", "", DocumentType.CC, "1234567890")});
+    public Suscription addSubscription(Plan plan) {;
        if (hasCreditCard()) {
            Suscription suscription = new Suscription("1", "Plan1", "Plan1", 100, 1);
               suscription.procesarPago(this);
@@ -26,7 +25,7 @@ public class User extends Customer{
        return null;
     }
 
-    private boolean hasCreditCard() {
+    public boolean hasCreditCard() {
         return !creditCards.isEmpty();
     }
 
