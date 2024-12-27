@@ -21,7 +21,7 @@ public class Repository {
     private static final String OS = System.getProperty("os.name");
     private static final String TEMP_DIRECTORY_RELATIVE_PATH = OS.contains("Mac")
         ? "/PaymentManager/src/main/java/baseDatos/temp/"
-        : "/src/main/java/baseDatos/temp/";
+        : "/PaymentManager/src/main/java/baseDatos/temp/";
     private static final String TEMP_DIRECTORY_ABS_PATH_STRING = ROOT_DIRECTORY + (new File(TEMP_DIRECTORY_RELATIVE_PATH)).getPath();
 
     public static void createDirectory(File directory) {

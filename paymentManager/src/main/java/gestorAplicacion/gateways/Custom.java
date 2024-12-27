@@ -33,7 +33,12 @@ public class Custom implements IAdapter {
             cardNumber.substring(11, 15),
             expirationDate,
             Card.getFranchise(cardNumber),
-            generateCardToken(cardNumber, cardHolder, expirationDate)
+            generateCardToken(cardNumber, cardHolder, expirationDate),Gateway.CUSTOM
         );
+    }
+
+    public boolean deleteCard(Card card) {
+        // delete card from the database
+        return true;
     }
 }

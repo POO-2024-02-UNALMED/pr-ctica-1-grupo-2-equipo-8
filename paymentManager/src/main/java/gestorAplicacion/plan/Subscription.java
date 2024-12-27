@@ -3,14 +3,14 @@ package gestorAplicacion.plan;
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.User;
 
-public class Suscription extends WithId {
+public class Subscription extends WithId {
     private String name;
     private String description;
     private double price;
     private int duration;
    
 
-    public Suscription(String id, String name, String description, double price, int duration) {
+    public Subscription(String id, String name, String description, double price, int duration) {
         super(id);
         this.name = name;
         this.description = description;
