@@ -1,12 +1,29 @@
 package gestorAplicacion.gateways;
 
-public class Credencial {
-    private String publicKey;
-    private String privateKey;
+import gestorAplicacion.WithId;
 
-    public Credencial(String publicKey, String privateKey) {
-        this.publicKey = publicKey;
-        this.privateKey = privateKey;
+public class Credencial extends WithId{
+    private final String PUBLICKEY;
+    private final String PRIVATEKEY;
+    private final Gateway GATEWAY;
+
+    public Credencial(String publicKey, String privateKey, Gateway gateway) {
+        super(gateway.toString());
+        this.PUBLICKEY = publicKey;
+        this.PRIVATEKEY = privateKey;
+        this.GATEWAY = gateway;
+    }
+
+    public String getPublicKey() {
+        return PUBLICKEY;
+    }
+
+    public String getPrivateKey() {
+        return PRIVATEKEY;
+    }
+
+    public Gateway getGateway() {
+        return GATEWAY;
     }
     
 }
