@@ -1,13 +1,12 @@
 package gestorAplicacion.gateways;
 
 public abstract class Authenticate {
-    protected static String AUTHENTICATIONTOKEN = null;
+    protected final String AUTHENTICATION_TOKEN;
 
-    public void setAuthenticationToken(String token){
-        AUTHENTICATIONTOKEN = token;
+    protected Authenticate(String token){
+        this.AUTHENTICATION_TOKEN = token;
     }
     public String getAuthenticationToken(){
-        return AUTHENTICATIONTOKEN;
+        return AUTHENTICATION_TOKEN;
     }
-
 }

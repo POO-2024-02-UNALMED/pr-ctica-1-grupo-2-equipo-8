@@ -3,7 +3,7 @@ package gestorAplicacion.customers;
 import java.util.ArrayList;
 
 import baseDatos.Repository;
-import gestorAplicacion.gateways.Credencial;
+import gestorAplicacion.gateways.Credential;
 import gestorAplicacion.gateways.Gateway;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
@@ -25,8 +25,8 @@ public class Admin extends Customer {
         return plan;
     }
 
-    public Credencial configureGateway(Gateway gateway, String publicKey, String privateKey) {
-        Credencial credencial = new Credencial(publicKey, privateKey, gateway);
+    public Credential configureGateway(Gateway gateway, String publicKey, String privateKey) {
+        Credential credencial = new Credential(publicKey, privateKey, gateway);
         Repository.save(credencial);
         return credencial;                
     }

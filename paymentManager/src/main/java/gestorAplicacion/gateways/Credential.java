@@ -2,12 +2,12 @@ package gestorAplicacion.gateways;
 
 import gestorAplicacion.WithId;
 
-public class Credencial extends WithId{
+public class Credential extends WithId {
     private final String PUBLICKEY;
     private final String PRIVATEKEY;
     private final Gateway GATEWAY;
 
-    public Credencial(String publicKey, String privateKey, Gateway gateway) {
+    public Credential(String publicKey, String privateKey, Gateway gateway) {
         super(gateway.toString());
         this.PUBLICKEY = publicKey;
         this.PRIVATEKEY = privateKey;
@@ -25,5 +25,4 @@ public class Credencial extends WithId{
     public Gateway getGateway() {
         return GATEWAY;
     }
-    
 }

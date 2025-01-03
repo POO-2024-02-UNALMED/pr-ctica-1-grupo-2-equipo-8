@@ -3,10 +3,10 @@ package gestorAplicacion.gateways;
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
 
-public class Custom extends Authenticate implements IAdapter {
-    @Override
-    public boolean autenticate(String publicKey, String privateKey) {
-        return authenticate(publicKey, privateKey);
+public class Custom extends Authenticate implements IGateway {
+
+    public Custom(String privateKey, String publicKey) {
+        super(privateKey + publicKey);
     }
     public Transaction pay(Transaction transaction) {
         return transaction;
@@ -19,9 +19,8 @@ public class Custom extends Authenticate implements IAdapter {
                 && cvv.length() == 3;
     }
 
-    boolean authenticate(String publicKey, String privateKey) {
-        this.AUTHENTICATIONTOKEN = publicKey + privateKey;
-        return true;
+    public boolean authenticated() {
+        return this.AUTHENTICATION_TOKEN != null;
     }
 
     private static String generateCardToken(String cardNumber, String cardHolder, String expirationDate) {

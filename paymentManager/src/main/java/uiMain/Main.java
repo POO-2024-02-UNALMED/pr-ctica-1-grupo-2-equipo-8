@@ -5,9 +5,8 @@ import baseDatos.Repository;
 import gestorAplicacion.customers.Admin;
 import gestorAplicacion.customers.DocumentType;
 import gestorAplicacion.customers.User;
-import gestorAplicacion.gateways.Custom;
 import gestorAplicacion.gateways.Gateway;
-import gestorAplicacion.gateways.IAdapter;
+import gestorAplicacion.gateways.GatewaysFactory;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
 import gestorAplicacion.transactions.Card;
@@ -27,53 +26,48 @@ public class Main {
         Subscription sub3 = new Subscription("basic", "sub3", "1", 100, 1);
         Subscription sub4 = new Subscription("essential", "sub4", "1", 100, 1);
 
-        Plan advanced = new Plan("Advanced","Books, Music, Videos",100, new ArrayList<Subscription>(){{
-            add(sub1);
-        }});
-        Plan smart = new Plan("Smart","Books, Music",80, new ArrayList<Subscription>(){{
-            add(sub2);
-        }});
-        Plan basic = new Plan("Basic","Videos",50, new ArrayList<Subscription>(){{
-            add(sub3);
-        }});
-        Plan essential = new Plan("Essential","Music",50, new ArrayList<Subscription>(){{
-            add(sub4);
-        }});
-        Plan [] list = {advanced,smart,basic,essential};
-        for (int i = 0; i < list.length; i++) {
-            logObject(Repository.save(list[i]));
-        }
+        ArrayList<Subscription> advancedSubscriptions = new ArrayList<>();
+        advancedSubscriptions.add(sub1);
+        Plan advanced = new Plan("Advanced","Books, Music, Videos",100, advancedSubscriptions);
 
+        ArrayList<Subscription> smartSubscriptions = new ArrayList<>();
+        smartSubscriptions.add(sub2);
+        Plan smart = new Plan("Smart","Books, Music",80, smartSubscriptions);
+
+        ArrayList<Subscription> basicSubscriptions = new ArrayList<>();
+        basicSubscriptions.add(sub3);
+        Plan basic = new Plan("Basic","Videos",50, basicSubscriptions);
+
+        ArrayList<Subscription> essentialSubscriptions = new ArrayList<>();
+        essentialSubscriptions.add(sub4);
+        Plan essential = new Plan("Essential","Music",50, essentialSubscriptions);
+
+        // save plans
+        Repository.save(advanced);
+        Repository.save(smart);
+        Repository.save(basic);
+        Repository.save(essential);
 
         Admin admin = new Admin(
             "jdoe@gmail.com",
-            "AVERYSECUREPASSWORD",
+            "A_VERY_SECURE_PASSWORD",
             DocumentType.CC,
             "1234567890"
         );
+        Repository.save(admin);
 
+        // configure credentials
         admin.configureGateway(Gateway.CUSTOM, "publicKey", "privateKey");
 
-        logObject(Repository.save(admin));
-        Admin admin2 = (Admin) Repository.load(
-            "Admin",
-            gestorAplicacion.WithId.createId(
-                "jdoe@gmail.com",
-                "AVERYSECUREPASSWORD"
-            )
-        );
-        logObject(admin2.getEmail());
-        logObject(admin2.getPassword());
-        logObject(admin2);
+        // Initialize gateways
+        GatewaysFactory.initializeGateway(Gateway.CUSTOM, null, null);
 
-        IAdapter custom = new Custom();
-
-        User janet = new User("janetdoe@gmail.com", "STRONGPASS", DocumentType.CC, "1234567890");
-        Card card = custom.addCreditCard("1234567890", janet.getEmail(), "26/35", "123");
+        // Create user
+        User janet = new User("janetdoe@gmail.com", "STRONG_PASS", DocumentType.CC, "1234567890");
+        Card card = GatewaysFactory.getGateway(Gateway.CUSTOM).addCreditCard("1234567890", janet.getEmail(), "26/35", "123");
         janet.addCreditCard(card);
-
-        logObject(janet.addSubscription(advanced));
-        logObject(janet.hasCreditCard());
+        janet.addSubscription(advanced);
+        janet.hasCreditCard();
         Repository.save(janet);
     }
 }

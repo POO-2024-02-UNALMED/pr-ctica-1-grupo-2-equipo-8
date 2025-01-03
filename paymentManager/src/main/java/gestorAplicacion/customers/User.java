@@ -7,7 +7,7 @@ import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
 import gestorAplicacion.transactions.Card;
 
-public class User extends Customer{
+public class User extends Customer {
 
     private List<Card> creditCards;
 
@@ -32,7 +32,7 @@ public class User extends Customer{
     public void addCreditCard(Card card) {
         creditCards.add(card);
     }
-    
+
     public void removeCreditCard(Card card) {
         if (card != null) {
             card.delete();
