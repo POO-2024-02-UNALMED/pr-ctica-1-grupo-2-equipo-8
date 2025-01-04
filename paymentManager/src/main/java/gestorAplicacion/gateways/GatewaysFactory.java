@@ -1,34 +1,31 @@
 package gestorAplicacion.gateways;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 public class GatewaysFactory {
     private static Map<Gateway, IGateway> gateways = new EnumMap<>(Gateway.class);
 
-    private GatewaysFactory(Gateway gateway, String publicKey, String privateKey) {
+    private GatewaysFactory(Gateway gateway) {
         switch (gateway) {
-            case EPAYCO, STRIPE, MERCADOPAGO:
+            case OTHER:
                 break;
-            case CUSTOM:
-                gateways.put(gateway, new Custom(publicKey, privateKey));
+            case PROJECT_GATEWAY:
+                gateways.put(gateway, new ProjectGateway());
                 break;
             default:
                 break;
         }
     }
 
-    private GatewaysFactory(Map<Gateway, Credential> gatewaysAndCredentials) {
-        for (Map.Entry<Gateway, Credential> entry : gatewaysAndCredentials.entrySet()) {
-            switch (entry.getKey()) {
-                case EPAYCO, STRIPE, MERCADOPAGO:
-                    break;
-                case CUSTOM:
-                    gateways.put(entry.getKey(), new Custom(entry.getValue().getPublicKey(), entry.getValue().getPrivateKey()));
-                    break;
-                default:
-                    break;
-            }
+    private GatewaysFactory(List<Gateway> gatewaysToAdd) {
+        iterateAndAdd(gatewaysToAdd);
+    }
+
+    private static void iterateAndAdd(List<Gateway> gatewaysToAdd) {
+        for (Gateway gateway : gatewaysToAdd) {
+            gateways.put(gateway, new ProjectGateway());
         }
     }
 
@@ -36,11 +33,19 @@ public class GatewaysFactory {
         return gateways.get(gateway);
     }
 
-    public static void initializeGateway(Gateway gateway, String publicKey, String privateKey) {
-        new GatewaysFactory(gateway, publicKey, privateKey);
+    public static void initializeGateway(Gateway gateway) {
+        if (gateways.isEmpty()) {
+            new GatewaysFactory(gateway);
+        } else {
+            GatewaysFactory.gateways.put(gateway, new ProjectGateway());
+        }
     }
 
-    public static void initializeGateways(Map<Gateway, Credential> gatewaysAndCredentials) {
-        new GatewaysFactory(gatewaysAndCredentials);
+    public static void initializeGateways(List<Gateway> gatewaysAndCredentials) {
+        if (gateways.isEmpty()) {
+            new GatewaysFactory(gatewaysAndCredentials);
+        } else {
+            iterateAndAdd(gatewaysAndCredentials);
+        }
     }
 }

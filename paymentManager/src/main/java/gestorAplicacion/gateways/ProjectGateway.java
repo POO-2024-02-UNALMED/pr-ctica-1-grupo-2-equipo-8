@@ -3,10 +3,10 @@ package gestorAplicacion.gateways;
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
 
-public class Custom extends Authenticate implements IGateway {
+public class ProjectGateway extends Authenticate implements IGateway {
 
-    public Custom(String privateKey, String publicKey) {
-        super(privateKey + publicKey);
+    public ProjectGateway() {
+        super(Gateway.PROJECT_GATEWAY);
     }
     public Transaction pay(Transaction transaction) {
         return transaction;
@@ -41,7 +41,7 @@ public class Custom extends Authenticate implements IGateway {
             cardNumber.substring(11, 15),
             expirationDate,
             Card.getFranchise(cardNumber),
-            generateCardToken(cardNumber, cardHolder, expirationDate),Gateway.CUSTOM
+            generateCardToken(cardNumber, cardHolder, expirationDate),Gateway.PROJECT_GATEWAY
         );
     }
 
