@@ -70,10 +70,17 @@ public class Subscription extends WithId {
         return user;
     }
 
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public Plan getPlan() {
         return plan;
     }
 
+    public void setPlan(Plan plan) {
+        this.plan = plan;
+    }
 
     public int getDurationDays() {
         return durationDays;

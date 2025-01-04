@@ -3,6 +3,7 @@ package gestorAplicacion.plan;
 import java.util.ArrayList;
 import java.util.List;
 
+import baseDatos.Repository;
 import gestorAplicacion.WithId;
 
 
@@ -38,6 +39,13 @@ public class Plan extends WithId{
     }
 
     public static List<Plan> getAll() {
-        return new ArrayList<>(); // TODO: Implement this method
+        List<WithId> withIdList = Repository.loadAllObjectInDirectory("Plan");
+        List<Plan> planList = new ArrayList<>();
+        for (WithId withId : withIdList) {
+            if (withId instanceof Plan plan) {
+                planList.add(plan);
+            }
+        }
+        return planList;
     }
 }

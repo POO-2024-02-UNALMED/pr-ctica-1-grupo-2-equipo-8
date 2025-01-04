@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import gestorAplicacion.WithId;
@@ -86,7 +88,7 @@ public class Repository {
 
             object = (WithId) objectInputStream.readObject();
         } catch (FileNotFoundException e) {
-            LOGGER.warning("File not found");
+            LOGGER.warning("File not found " + path);
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -122,5 +124,23 @@ public class Repository {
             }
         }
         return false;
+    }
+
+    public static List<WithId> loadAllObjectInDirectory(String path) {
+        File directory = new File(TEMP_DIRECTORY_ABS_PATH_STRING + File.separator + path);
+        List<WithId> objects = new ArrayList<>();
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            for (File file : files) {
+                try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file))) {
+                    WithId object = (WithId) objectInputStream.readObject();
+                    objects.add(object);
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return objects;
     }
 }

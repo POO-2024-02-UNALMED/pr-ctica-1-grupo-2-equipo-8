@@ -52,10 +52,12 @@ public class User extends Customer {
         for (Plan plan : plans) {
             String id = WithId.createId(this.email, plan.getName());
             Subscription subscription = (Subscription) Repository.load(
-                id,
-                "Subscription" + File.separator + plan.getName()
+                "Subscription" + File.separator + plan.getName(),
+                id
             );
             if (subscription != null) {
+                subscription.setUser(this);
+                subscription.setPlan(plan);
                 userSubscriptions.add(subscription);
             }
         }

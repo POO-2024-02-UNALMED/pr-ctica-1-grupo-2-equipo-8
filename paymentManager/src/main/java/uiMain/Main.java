@@ -1,7 +1,9 @@
 package uiMain;
 
 import baseDatos.Repository;
+import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
+import gestorAplicacion.customers.Customer;
 import gestorAplicacion.customers.DocumentType;
 import gestorAplicacion.customers.User;
 import gestorAplicacion.gateways.Gateway;
@@ -13,8 +15,48 @@ import gestorAplicacion.transactions.Card;
 
 public class Main {
 
-    static void logObject(Object object) {
+    static void log(Object object) {
         System.out.println(object);
+    }
+
+    static String askForSelection (String message, String [] options) {
+        log(message);
+        for (int i = 0; i < options.length; i++) {
+            log(i + 1 + ". " + options[i]);
+        }
+        String selection = System.console().readLine();
+        if (Integer.parseInt(selection) < 0 || Integer.parseInt(selection) >= options.length) {
+            log("Invalid selection, please select a valid option");
+            return askForSelection(message, options);
+        }
+        return selection;
+    }
+
+    static String askForStringInput (String message) {
+        log(message);
+        return System.console().readLine();
+    }
+
+    static String askForPassword (String message) {
+        log(message);
+        return new String(System.console().readPassword());
+    }
+
+    static Customer login () {
+        // ask for role on CLI User or Admin
+        String role = askForSelection("Select your role: ", new String [] {"User", "Admin"});
+        // ask for email
+        String email = askForStringInput("Enter your email: ");
+        // ask for password
+        String password = askForPassword("Enter your password: ");
+        String id = WithId.createId(email, password);
+        Customer customer = (Customer) Repository.load(role.equals("1") ? "User" : "Admin", id);
+        if (customer == null) {
+            log("Invalid credentials");
+            return login();
+        }
+
+        return customer;
     }
 
     public static void main(String[] args) {
@@ -29,16 +71,16 @@ public class Main {
         Repository.save(basic);
         Repository.save(essential);
 
-        Admin admin = new Admin(
+        Admin defaultAdmin = new Admin(
             "jdoe@gmail.com",
             "A_VERY_SECURE_PASSWORD",
             DocumentType.CC,
             "1234567890"
         );
-        Repository.save(admin);
+        Repository.save(defaultAdmin);
 
         // configure credentials
-        admin.configureGateway(Gateway.PROJECT_GATEWAY, "publicKey", "privateKey");
+        defaultAdmin.configureGateway(Gateway.PROJECT_GATEWAY, "publicKey", "privateKey");
 
         // Initialize gateways
         GatewaysFactory.initializeGateway(Gateway.PROJECT_GATEWAY);
@@ -67,8 +109,14 @@ public class Main {
 
         Repository.save(janet);
 
-        // Get user subscriptions
-        janet.getSubscriptions().forEach(Main::logObject);
+        // LOGIN
+        Customer customer = login();
+        if (customer instanceof User user) {
+            user.getSubscriptions().forEach(Main::log);
+        } else {
+            Admin admin = (Admin) customer;
+            log(admin);
+        }
     }
 }
 
