@@ -2,46 +2,38 @@ package gestorAplicacion.plan;
 
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.User;
+import gestorAplicacion.gateways.Gateway;
+import gestorAplicacion.gateways.GatewaysFactory;
+import gestorAplicacion.transactions.Transaction;
 
 public class Subscription extends WithId {
-    private String name;
-    private String description;
-    private double price;
+    private User user;
+    private Plan plan;
     private int duration;
-   
 
-    public Subscription(String id, String name, String description, double price, int duration) {
-        super(id);
-        this.name = name;
-        this.description = description;
-        this.price = price;
+    public Subscription(User user, Plan plan, int duration) {
+        super(createId(user.getEmail(), plan.getName()));
         this.duration = duration;
-    }
-    
-
-    public boolean procesarPago(User user) {
-        // TODO implement here
-        return false;
+        this.user = user;
+        this.plan = plan;
     }
 
-    public String getName() {
-        return name;
+    public Transaction processPayment(Gateway gateway) {
+        Transaction transaction = new Transaction(this.plan.getName(), this.user, this.plan.getPrice());
+        GatewaysFactory.getGateway(gateway).pay(transaction);
+        return transaction;
     }
 
-    public String getDescription() {
-        return description;
-    }   
-
-    public double getPrice() {
-        return price;
+    public User getUser() {
+        return user;
     }
+
+    public Plan getPlan() {
+        return plan;
+    }
+
 
     public int getDuration() {
         return duration;
     }
-
-    public void setid(String id) {
-        setId(id);
-    }
-
 }
