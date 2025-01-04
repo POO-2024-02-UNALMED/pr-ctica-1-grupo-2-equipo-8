@@ -66,6 +66,9 @@ public class Main {
         janet.addSubscription(essential);
 
         Repository.save(janet);
+
+        // Get user subscriptions
+        janet.getSubscriptions().forEach(Main::logObject);
     }
 }
 

@@ -1,4 +1,5 @@
 package baseDatos;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,7 +27,11 @@ public class Repository {
 
     public static void createDirectory(File directory) {
         if (!directory.exists()) {
-            directory.mkdir();
+            try {
+                Files.createDirectories(directory.toPath());
+            } catch (IOException e) {
+                LOGGER.warning("Failed to create directory: " + e.getMessage());
+            }
         }
     }
 
@@ -34,21 +39,21 @@ public class Repository {
         createDirectory(new File(TEMP_DIRECTORY_ABS_PATH_STRING));
     }
 
-    private static String getObjectFilePath(WithId object) {
+    private static String getObjectFilePath(WithId object, String path) {
         String objectClass = object.getClass().getSimpleName();
         String objectId = object.getId();
-        String classPath = new File(TEMP_DIRECTORY_ABS_PATH_STRING + File.separator + objectClass).getPath();
-        createDirectory(new File(classPath));
+        String directoryPath = path == null
+            ? new File(TEMP_DIRECTORY_ABS_PATH_STRING + File.separator + objectClass).getPath()
+            : new File(TEMP_DIRECTORY_ABS_PATH_STRING + File.separator + path).getPath();
+        createDirectory(new File(directoryPath));
 
-        return new File(classPath + File.separator + objectId).getPath();
+        return new File(directoryPath + File.separator + objectId).getPath();
     }
 
-    public static boolean save(WithId object) {
-        String objectPath = getObjectFilePath(object);
-        File file = new File(objectPath);
+    private static boolean saveObject (WithId object, File file) {
         if (!file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-                    new FileOutputStream(objectPath))) {
+                    new FileOutputStream(file.getPath()))) {
                 objectOutputStream.writeObject(object);
                 return true;
             } catch (IOException e) {
@@ -61,9 +66,21 @@ public class Repository {
         return false;
     }
 
-    public static WithId load(String objectClass, String id) {
+    public static boolean save(WithId object) {
+        String objectPath = getObjectFilePath(object, null);
+        File file = new File(objectPath);
+        return saveObject(object, file);
+    }
+
+    public static boolean save(WithId object, String path) {
+        String objectPath = getObjectFilePath(object, path);
+        File file = new File(objectPath);
+        return saveObject(object, file);
+    }
+
+    public static WithId load(String path, String id) {
         WithId object = null;
-        String directory = new File(TEMP_DIRECTORY_ABS_PATH_STRING + File.separator + objectClass + File.separator + id).getPath();
+        String directory = new File(TEMP_DIRECTORY_ABS_PATH_STRING + File.separator + path + File.separator + id).getPath();
         try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream
                 (directory))) {
 
@@ -77,7 +94,7 @@ public class Repository {
     }
 
     public static boolean delete(WithId object) {
-        File file = new File(getObjectFilePath(object));
+        File file = new File(getObjectFilePath(object, null));
         if (file.exists()) {
             try {
                 Files.delete(file.toPath());
@@ -92,7 +109,7 @@ public class Repository {
     }
 
     public static boolean update (WithId object) {
-        String fileName = getObjectFilePath(object);
+        String fileName = getObjectFilePath(object, null);
         File file = new File(TEMP_DIRECTORY_ABS_PATH_STRING + fileName);
         if (file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(

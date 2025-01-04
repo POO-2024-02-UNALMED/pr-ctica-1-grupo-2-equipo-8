@@ -1,5 +1,8 @@
 package gestorAplicacion.plan;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import gestorAplicacion.WithId;
 
 
@@ -32,5 +35,9 @@ public class Plan extends WithId{
 
     public double getPrice() {
         return price;
+    }
+
+    public static List<Plan> getAll() {
+        return new ArrayList<>(); // TODO: Implement this method
     }
 }

@@ -8,6 +8,7 @@ public class ProjectGateway extends Authenticate implements IGateway {
     public ProjectGateway() {
         super(Gateway.PROJECT_GATEWAY);
     }
+
     public Transaction pay(Transaction transaction) {
         return transaction;
     }
@@ -41,7 +42,7 @@ public class ProjectGateway extends Authenticate implements IGateway {
             cardNumber.substring(11, 15),
             expirationDate,
             Card.getFranchise(cardNumber),
-            generateCardToken(cardNumber, cardHolder, expirationDate),Gateway.PROJECT_GATEWAY
+            generateCardToken(cardNumber, cardHolder, expirationDate), Gateway.PROJECT_GATEWAY
         );
     }
 

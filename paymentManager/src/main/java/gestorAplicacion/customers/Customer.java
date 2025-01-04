@@ -1,19 +1,12 @@
 package gestorAplicacion.customers;
 
-import java.util.ArrayList;
-import java.util.concurrent.Flow;
-
-import gestorAplicacion.plan.Subscription;
 import gestorAplicacion.WithId;
-import gestorAplicacion.transactions.Card;
-import jdk.jshell.JShell;
 
 public class Customer extends WithId {
     protected String email;
     protected String password;
     protected DocumentType documentType;
     protected String documentNumber;
-    private ArrayList<Subscription> subscriptions;
 
     public Customer(
         String email,
@@ -40,23 +33,6 @@ public class Customer extends WithId {
             return false;
         }
         return true;
-    }
-
-    public ArrayList<Subscription> getSubscriptions() {
-        return subscriptions;
-    }
-
-    public void addSubscription(Subscription subscription) {
-        if (subscriptions == null) {
-            subscriptions = new ArrayList<Subscription>();
-        }
-        subscriptions.add(subscription);
-    }         
-
-    public void deleteSubscription(Subscription subscription) {
-        if (subscriptions != null) {
-            subscriptions.remove(subscription);
-        }
     }
 
     public String getEmail() {
