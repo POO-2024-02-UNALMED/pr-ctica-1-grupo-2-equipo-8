@@ -1,26 +1,68 @@
 package gestorAplicacion.plan;
 
+import java.util.Date;
+
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.User;
 import gestorAplicacion.gateways.Gateway;
 import gestorAplicacion.gateways.GatewaysFactory;
 import gestorAplicacion.transactions.Transaction;
+import gestorAplicacion.transactions.TransactionStatus;
 
 public class Subscription extends WithId {
-    private User user;
-    private Plan plan;
-    private int duration;
+    private static final long serialVersionUID = 2L;
+    private transient User user;
+    private transient Plan plan;
+    private int durationDays;
+    private Date nextChargeDate;
+    private Date startDate;
+    private SubscriptionStatus status;
+    private int numberOfCollectionAttempts = 0;
 
-    public Subscription(User user, Plan plan, int duration) {
+    public Subscription(User user, Plan plan, int durationDays) {
         super(createId(user.getEmail(), plan.getName()));
-        this.duration = duration;
+        this.durationDays = durationDays;
         this.user = user;
         this.plan = plan;
+        this.startDate = new Date();
+    }
+
+    public Subscription(User user, Plan plan, int durationDays, Date startDate) {
+        super(createId(user.getEmail(), plan.getName()));
+        this.durationDays = durationDays;
+        this.user = user;
+        this.plan = plan;
+        this.startDate = startDate;
     }
 
     public Transaction processPayment(Gateway gateway) {
-        Transaction transaction = new Transaction(this.plan.getName(), this.user, this.plan.getPrice());
+        if (this.nextChargeDate != null && this.nextChargeDate.after(new Date())) {
+            return new Transaction(
+                this.plan.getName(),
+                this.user, this.plan.getPrice(),
+                TransactionStatus.REJECTED
+            );
+        }
+
+        Transaction transaction = new Transaction(
+            this.plan.getName(),
+            this.user,
+            this.plan.getPrice(),
+            TransactionStatus.PENDING
+        );
         GatewaysFactory.getGateway(gateway).pay(transaction);
+        if (transaction.getStatus() == TransactionStatus.ACCEPTED) {
+            this.nextChargeDate = new Date(System.currentTimeMillis() + 30 * 24 * 60 * 60 * 1000);
+            this.status = SubscriptionStatus.ACTIVE;
+        } else if (this.numberOfCollectionAttempts < 3) {
+            // update next charge date to tomorrow
+            this.nextChargeDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
+            this.status = SubscriptionStatus.PENDING;
+            this.numberOfCollectionAttempts++;
+        } else {
+            this.status = SubscriptionStatus.CANCELLED;
+        }
+
         return transaction;
     }
 
@@ -33,7 +75,27 @@ public class Subscription extends WithId {
     }
 
 
-    public int getDuration() {
-        return duration;
+    public int getDurationDays() {
+        return durationDays;
+    }
+
+    public Date getNextChargeDate() {
+        return nextChargeDate;
+    }
+
+    public void setNextChargeDate(Date nextChargeDate) {
+        this.nextChargeDate = nextChargeDate;
+    }
+
+    public SubscriptionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SubscriptionStatus status) {
+        this.status = status;
+    }
+
+    public Date getStartDate() {
+        return startDate;
     }
 }

@@ -26,6 +26,15 @@ public class Transaction extends WithId {
         this.gateway = user.getGateway();
     }
 
+    public Transaction(String description, User user, double price, TransactionStatus status) {
+        super(createId(getMontAndYear(), user.getEmail()));
+        this.description = description;
+        this.price = price;
+        this.userEmail = user.getEmail();
+        this.gateway = user.getGateway();
+        this.status = status;
+    }
+
     public Card getPaymentMethod() {
         return paymentMethod;
     }
