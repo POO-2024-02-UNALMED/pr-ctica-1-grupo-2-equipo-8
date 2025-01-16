@@ -9,6 +9,7 @@ import gestorAplicacion.WithId;
 import gestorAplicacion.gateways.Gateway;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
+import gestorAplicacion.plan.SubscriptionStatus;
 import gestorAplicacion.transactions.Card;
 
 public class User extends Customer {
@@ -25,21 +26,34 @@ public class User extends Customer {
         this.gateway = gateway;
     }
 
-    public Subscription addSubscription(Plan plan) {
+    public boolean addSubscription(Plan plan) {
+        List<Plan> userPlans = getPlans();
+        if (userPlans.contains(plan)) {
+            return false;
+        }
         Subscription subscription = new Subscription(this, plan, 1);
        if (hasCreditCard()) {
             subscription.processPayment(this.gateway);
         }
 
         Repository.save(subscription, "Subscription" + File.separator + subscription.getPlan().getName());
-        if (subscriptions != null) {
+        if (this.subscriptions != null) {
             subscriptions.add(subscription);
         } else {
-            subscriptions = new ArrayList<>();
-            subscriptions.add(subscription);
+            this.subscriptions = new ArrayList<>();
+            this.subscriptions.add(subscription);
         }
 
-       return subscription;
+       return subscription.getStatus() == SubscriptionStatus.ACTIVE;
+    }
+
+    public List<Plan> getPlans() {
+        ArrayList<Subscription> useSubscriptions = (ArrayList<Subscription>) getSubscriptions();
+        ArrayList<Plan> plans = new ArrayList<>();
+        for (Subscription subscription : useSubscriptions) {
+            plans.add(subscription.getPlan());
+        }
+        return plans;
     }
 
     public List<Subscription> getSubscriptions() {
@@ -70,8 +84,8 @@ public class User extends Customer {
         return !creditCards.isEmpty();
     }
 
-    public void addCreditCard(Card card) {
-        creditCards.add(card);
+    public boolean addCreditCard(Card card) {
+        return creditCards.add(card);
     }
 
     public void removeCreditCard(Card card) {

@@ -11,4 +11,12 @@ public class Notificacion{
         }
         System.out.println("Descripcion: " + description);
     }
+    public static void sendNotification(boolean isError, String message) {
+        if (isError) {
+            System.out.println("ERROR: " + message);
+        }
+        else {
+            System.out.println("NOTIFICACION: " + message);
+        }
+    }
 }

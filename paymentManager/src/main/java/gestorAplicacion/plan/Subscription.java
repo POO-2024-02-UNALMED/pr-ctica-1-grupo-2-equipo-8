@@ -25,6 +25,7 @@ public class Subscription extends WithId {
         this.user = user;
         this.plan = plan;
         this.startDate = new Date();
+        this.status = SubscriptionStatus.INACTIVE;
     }
 
     public Subscription(User user, Plan plan, int durationDays, Date startDate) {
@@ -33,6 +34,7 @@ public class Subscription extends WithId {
         this.user = user;
         this.plan = plan;
         this.startDate = startDate;
+        this.status = SubscriptionStatus.INACTIVE;
     }
 
     public Transaction processPayment(Gateway gateway) {

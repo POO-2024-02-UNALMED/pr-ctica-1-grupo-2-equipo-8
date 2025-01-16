@@ -2,6 +2,7 @@ package gestorAplicacion.gateways;
 
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
+import gestorAplicacion.transactions.TransactionStatus;
 
 public class ProjectGateway extends Authenticate implements IGateway {
 
@@ -10,6 +11,7 @@ public class ProjectGateway extends Authenticate implements IGateway {
     }
 
     public Transaction pay(Transaction transaction) {
+        transaction.setStatus(TransactionStatus.ACCEPTED);
         return transaction;
     }
 

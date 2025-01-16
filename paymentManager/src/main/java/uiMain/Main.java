@@ -1,6 +1,10 @@
 package uiMain;
 
+import java.util.List;
+import java.util.Scanner;
+
 import baseDatos.Repository;
+import gestorAplicacion.Notificacion;
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
 import gestorAplicacion.customers.Customer;
@@ -9,6 +13,7 @@ import gestorAplicacion.customers.User;
 import gestorAplicacion.gateways.Gateway;
 import gestorAplicacion.gateways.GatewaysFactory;
 import gestorAplicacion.gateways.IGateway;
+import gestorAplicacion.gateways.ProjectGateway;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.transactions.Card;
 
@@ -19,17 +24,31 @@ public class Main {
         System.out.println(object);
     }
 
-    static String askForSelection (String message, String [] options) {
+    static Card addCreditCard() {
+        String cardNumber = askString("Enter the your credit card number");
+        String cardHolder = askString("Enter the card holder name");
+        String expirationDate = askString("Enter the due date of your credit card (MM/YY)");
+        String cvv = askString("Enter the CVV of your credit card");
+        ProjectGateway projectGateway = new ProjectGateway();
+        return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv);
+    }
+
+    static String askString(String message) {
+        log(message);
+        return System.console().readLine();
+    }
+
+    static int askForSelection (String message, String [] options) {
         log(message);
         for (int i = 0; i < options.length; i++) {
             log(i + 1 + ". " + options[i]);
         }
-        String selection = System.console().readLine();
-        if (Integer.parseInt(selection) < 0 || Integer.parseInt(selection) >= options.length) {
+        int selection = new Scanner(System.in).nextInt();
+        if (selection < 0 || selection >= options.length) {
             log("Invalid selection, please select a valid option");
             return askForSelection(message, options);
         }
-        return selection;
+        return selection-1;
     }
 
     static String askForStringInput (String message) {
@@ -44,13 +63,13 @@ public class Main {
 
     static Customer login () {
         // ask for role on CLI User or Admin
-        String role = askForSelection("Select your role: ", new String [] {"User", "Admin"});
+        int role = askForSelection("Select your role: ", new String [] {"User", "Admin"});
         // ask for email
         String email = askForStringInput("Enter your email: ");
         // ask for password
         String password = askForPassword("Enter your password: ");
         String id = WithId.createId(email, password);
-        Customer customer = (Customer) Repository.load(role.equals("1") ? "User" : "Admin", id);
+        Customer customer = (Customer) Repository.load(role==0 ? "User" : "Admin", id);
         if (customer == null) {
             log("Invalid credentials");
             return login();
@@ -105,18 +124,44 @@ public class Main {
         janet.addSubscription(advanced);
         janet.addSubscription(smart);
         janet.addSubscription(basic);
-        janet.addSubscription(essential);
 
         Repository.save(janet);
 
+        String [] userOptions = {"Add subscription", "Add credit card", "Change subscription paying metod"};
+        String [] adminOptions = {"Charge subscription", "Remove plan"};
+
         // LOGIN
         Customer customer = login();
+        Notificacion notificacion = new Notificacion();
         if (customer instanceof User user) {
-            user.getSubscriptions().forEach(Main::log);
-        } else {
+            int selection = askForSelection("Select function", userOptions);
+            if (selection == 0) {
+                List<Plan> plans = Plan.getAll();
+                String [] planNames = new String[plans.size()];
+                for (int i = 0; i < plans.size(); i++) {
+                    planNames[i] = plans.get(i).getName();
+                }
+                int selectedPlanIndex = askForSelection("Select a plan", planNames);
+                if (user.addSubscription(plans.get(selectedPlanIndex))){
+                    notificacion.sendNotification(false, "Subscription added successfully");
+                } else {
+                    notificacion.sendNotification(true, "Error adding subscription");
+                }
+            } else if (selection == 1) {
+                if (user.addCreditCard(addCreditCard())) {
+                    notificacion.sendNotification(false, "Credit card added successfully");
+                } else {
+                    notificacion.sendNotification(true, "Invalid credeit car ");
+                }
+            } else {
+                System.out.println("ERROR");
+            }
+            
+            }
+             else {
             Admin admin = (Admin) customer;
             log(admin);
-        }
+            } 
     }
 }
 
