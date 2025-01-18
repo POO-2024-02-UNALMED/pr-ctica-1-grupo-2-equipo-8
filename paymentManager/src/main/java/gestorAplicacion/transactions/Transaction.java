@@ -1,44 +1,46 @@
 package gestorAplicacion.transactions;
 
-import java.util.List;
+import java.util.Calendar;
 
 import gestorAplicacion.WithId;
-import gestorAplicacion.customers.Admin;
-import gestorAplicacion.plan.Subscription;
+import gestorAplicacion.customers.User;
+import gestorAplicacion.gateways.Gateway;
 
 public class Transaction extends WithId {
-    private String name;
-    private String description;
-    private double price;
-    private int duration;
     private Card paymentMethod;
     private  TransactionStatus status;
+    private String description;
+    private double price;
+    private String userEmail;
+    private Gateway gateway;
 
-    public Transaction(String id, String name, String description, double price, int duration, Admin[] admins) {
-        super(id);
-        this.name = name;
+    private static String getMontAndYear() {
+        return Calendar.getInstance().get(Calendar.MONTH) + "-" + Calendar.getInstance().get(Calendar.YEAR);
+    }
+
+    public Transaction(String description, User user, double price) {
+        super(createId(getMontAndYear(), user.getEmail()));
         this.description = description;
         this.price = price;
-        this.duration = duration;
+        this.userEmail = user.getEmail();
+        this.gateway = user.getGateway();
     }
- 
+
+    public Transaction(String description, User user, double price, TransactionStatus status) {
+        super(createId(getMontAndYear(), user.getEmail()));
+        this.description = description;
+        this.price = price;
+        this.userEmail = user.getEmail();
+        this.gateway = user.getGateway();
+        this.status = status;
+    }
+
     public Card getPaymentMethod() {
         return paymentMethod;
     }
 
     public void setPaymentMethod(Card paymentMethod) {
         this.paymentMethod = paymentMethod;
-    }
-
-    public static void mostrarSuscripciones(List<Subscription> suscripciones) {
-            for (Subscription suscription : suscripciones) {
-            System.out.println("ID: " + suscription.getId());
-            System.out.println("Nombre: " + suscription.getName());
-            System.out.println("Descripción: " + suscription.getDescription());
-            System.out.println("Precio: " + suscription.getPrice());
-            System.out.println("Duración: " + suscription.getDuration());
-            System.out.println("-------------------------");
-        }
     }
 
     public TransactionStatus getStatus() {
@@ -48,5 +50,20 @@ public class Transaction extends WithId {
     public void setStatus(TransactionStatus status) {
         this.status = status;
     }
-    
+
+    public String getDescription() {
+        return description;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public Gateway getGateway() {
+        return gateway;
+    }
 }

@@ -1,8 +1,6 @@
 package gestorAplicacion.gateways;
 
 public enum Gateway {
-    EPAYCO,
-    STRIPE,
-    MERCADOPAGO,
-    CUSTOM,
+    OTHER,
+    PROJECT_GATEWAY,
 }

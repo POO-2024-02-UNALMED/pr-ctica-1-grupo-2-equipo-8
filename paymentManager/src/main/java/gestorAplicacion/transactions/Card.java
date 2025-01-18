@@ -1,8 +1,8 @@
 package gestorAplicacion.transactions;
 
 import gestorAplicacion.WithId;
-import gestorAplicacion.gateways.Adapter;
 import gestorAplicacion.gateways.Gateway;
+import gestorAplicacion.gateways.GatewaysFactory;
 
 public class Card extends WithId {
     private String dueDate;
@@ -11,7 +11,7 @@ public class Card extends WithId {
     private final String TOKEN;
     private Gateway gateway;
 
-    public Card( String lastFour, String dueDate, Franchise franchise, String token, Gateway gateway) {
+    public Card(String lastFour, String dueDate, Franchise franchise, String token, Gateway gateway) {
         super(WithId.createId(dueDate, lastFour));
         this.dueDate = dueDate;
         this.lastFour = lastFour;
@@ -36,8 +36,8 @@ public class Card extends WithId {
         return TOKEN;
     }
 
-    public void delete(){
-        new Adapter(gateway).deleteCard(this);
+    public void delete() {
+        GatewaysFactory.getGateway(this.gateway).deleteCard(this);
     }
 
     public static Franchise getFranchise(String number) {

@@ -2,9 +2,16 @@ package gestorAplicacion.gateways;
 
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
+import gestorAplicacion.transactions.TransactionStatus;
 
-public class Custom implements IAdapter {
+public class ProjectGateway extends Authenticate implements IGateway {
+
+    public ProjectGateway() {
+        super(Gateway.PROJECT_GATEWAY);
+    }
+
     public Transaction pay(Transaction transaction) {
+        transaction.setStatus(TransactionStatus.ACCEPTED);
         return transaction;
     }
 
@@ -13,6 +20,10 @@ public class Custom implements IAdapter {
                 && !cardHolder.isEmpty()
                 && expirationDate.length() == 5
                 && cvv.length() == 3;
+    }
+
+    public boolean authenticated() {
+        return this.AUTHENTICATION_TOKEN != null;
     }
 
     private static String generateCardToken(String cardNumber, String cardHolder, String expirationDate) {
@@ -33,7 +44,7 @@ public class Custom implements IAdapter {
             cardNumber.substring(11, 15),
             expirationDate,
             Card.getFranchise(cardNumber),
-            generateCardToken(cardNumber, cardHolder, expirationDate),Gateway.CUSTOM
+            generateCardToken(cardNumber, cardHolder, expirationDate), Gateway.PROJECT_GATEWAY
         );
     }
 
