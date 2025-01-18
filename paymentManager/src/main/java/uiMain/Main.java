@@ -56,12 +56,12 @@ public class Main {
         for (int i = 0; i < options.length; i++) {
             log(i + 1 + ". " + options[i]);
         }
-        int selection = new Scanner(System.in).nextInt();
-        if (selection < 0 || selection >= options.length) {
+        int selection = new Scanner(System.in).nextInt()-1;
+        if (selection < 0 || selection > options.length) {
             log("Invalid selection, please select a valid option");
             return askForSelection(message, options);
         }
-        return selection-1;
+        return selection;
     }
 
     static String askForStringInput (String message) {
