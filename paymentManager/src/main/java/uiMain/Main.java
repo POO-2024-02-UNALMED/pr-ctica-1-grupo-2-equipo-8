@@ -150,7 +150,8 @@ public class Main {
         
         int selection = askForSelection("Select function", userOptions);
         switch (selection) {
-            case 1: // Add subscription ###############
+            
+            case 0: // Add subscription ###############
             List<Plan> plans = Plan.getAll();
             String [] planNames = new String[plans.size()];
             for (int i = 0; i < plans.size(); i++) {
@@ -166,7 +167,7 @@ public class Main {
             Askmenu(userOptions);
                 break;
 
-            case 2://Add credit card ############
+            case 1://Add credit card ############
                 if (janet.addCreditCard(addCreditCard())) {
                     notificacion.sendNotification(false, "Credit card added successfully");
                 } else {
@@ -174,7 +175,7 @@ public class Main {
                 }
                 Askmenu(userOptions);
                 break;
-            case 3://Change subscription paying metod ############
+            case 2://Change subscription paying metod ############
                 List<Subscription> subscriptions = janet.getSubscriptions();
                 String [] subscriptionNames = new String[subscriptions.size()];
                 
@@ -193,30 +194,18 @@ public class Main {
                 }
 
                 break;
+
+            case 3: // Delete plan ############
+
+                break;
+
+            case 4: // Charge subscription ############
+
+                break;
             default:
-                throw new AssertionError();
+                log("Invalid selection");
         }
-        if (customer instanceof User user) {
-        
-            if (selection == 0) {
-              
-                
-            } else if (selection == 1) {
-                if (user.addCreditCard(addCreditCard())) {
-                    notificacion.sendNotification(false, "Credit card added successfully");
-                } else {
-                    notificacion.sendNotification(true, "Invalid credeit car ");
-                }
-                Askmenu(userOptions);
-            } else {
-                System.out.println("ERROR");
-            }
-            
-            }
-             else {
-            Admin admin = (Admin) customer;
-            log(admin);
-            } 
+
           
     }
 }
