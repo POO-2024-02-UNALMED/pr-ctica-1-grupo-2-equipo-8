@@ -23,7 +23,18 @@ public class Main {
     static void log(Object object) {
         System.out.println(object);
     }
-
+    static int  Askmenu(String [] userOptions){
+        System.out.println("Deseas hacer otra operacion? 1. Si 2. No");
+        int option = new Scanner(System.in).nextInt();
+        if (option == 1) {
+            int selection = askForSelection("Select function", userOptions);
+            return selection;
+        } else {
+            System.out.println("Gracias por usar nuestro servicio");
+            return -1;
+        }
+        
+    }
     static Card addCreditCard() {
         String cardNumber = askString("Enter the your credit card number");
         String cardHolder = askString("Enter the card holder name");
@@ -31,6 +42,8 @@ public class Main {
         String cvv = askString("Enter the CVV of your credit card");
         ProjectGateway projectGateway = new ProjectGateway();
         return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv);
+        
+
     }
 
     static String askString(String message) {
@@ -107,8 +120,8 @@ public class Main {
 
         // Create user
         User janet = new User(
-            "janetdoe@gmail.com",
-            "STRONG_PASS", DocumentType.CC,
+            "jane",
+            "STRO", DocumentType.CC,
             "1234567890",
             Gateway.PROJECT_GATEWAY
         );
@@ -146,7 +159,11 @@ public class Main {
                     notificacion.sendNotification(false, "Subscription added successfully");
                 } else {
                     notificacion.sendNotification(true, "Error adding subscription");
+                    
+                    
                 }
+                Askmenu(userOptions);
+                
             } else if (selection == 1) {
                 if (user.addCreditCard(addCreditCard())) {
                     notificacion.sendNotification(false, "Credit card added successfully");
@@ -156,12 +173,13 @@ public class Main {
             } else {
                 System.out.println("ERROR");
             }
-            
+            Askmenu(userOptions);
             }
              else {
             Admin admin = (Admin) customer;
             log(admin);
             } 
+            Askmenu(userOptions);
     }
 }
 
