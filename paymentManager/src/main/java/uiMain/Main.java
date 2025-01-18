@@ -15,6 +15,7 @@ import gestorAplicacion.gateways.GatewaysFactory;
 import gestorAplicacion.gateways.IGateway;
 import gestorAplicacion.gateways.ProjectGateway;
 import gestorAplicacion.plan.Plan;
+import gestorAplicacion.plan.Subscription;
 import gestorAplicacion.transactions.Card;
 
 
@@ -146,23 +147,59 @@ public class Main {
         // LOGIN
         Customer customer = login();
         Notificacion notificacion = new Notificacion();
-        if (customer instanceof User user) {
-            int selection = askForSelection("Select function", userOptions);
-            if (selection == 0) {
-                List<Plan> plans = Plan.getAll();
-                String [] planNames = new String[plans.size()];
-                for (int i = 0; i < plans.size(); i++) {
-                    planNames[i] = plans.get(i).getName();
-                }
-                int selectedPlanIndex = askForSelection("Select a plan", planNames);
-                if (user.addSubscription(plans.get(selectedPlanIndex))){
-                    notificacion.sendNotification(false, "Subscription added successfully");
+        
+        int selection = askForSelection("Select function", userOptions);
+        switch (selection) {
+            case 1: // Add subscription ###############
+            List<Plan> plans = Plan.getAll();
+            String [] planNames = new String[plans.size()];
+            for (int i = 0; i < plans.size(); i++) {
+                planNames[i] = plans.get(i).getName();
+            }
+            int selectedPlanIndex = askForSelection("Select a plan", planNames);
+            if (janet.addSubscription(plans.get(selectedPlanIndex))){
+                notificacion.sendNotification(false, "Subscription added successfully");
+            } else {
+                notificacion.sendNotification(true, "Error adding subscription");               
+                
+            }
+            Askmenu(userOptions);
+                break;
+
+            case 2://Add credit card ############
+                if (janet.addCreditCard(addCreditCard())) {
+                    notificacion.sendNotification(false, "Credit card added successfully");
                 } else {
-                    notificacion.sendNotification(true, "Error adding subscription");
-                    
-                    
+                    notificacion.sendNotification(true, "Invalid credeit car ");
                 }
                 Askmenu(userOptions);
+                break;
+            case 3://Change subscription paying metod ############
+                List<Subscription> subscriptions = janet.getSubscriptions();
+                String [] subscriptionNames = new String[subscriptions.size()];
+                
+                for (int i = 0; i < subscriptions.size(); i++) {
+                    subscriptionNames[i] = subscriptions.get(i).getPlan().getName();
+                }
+                int selectedSubscriptionIndex = askForSelection("Select a subscription", subscriptionNames);
+
+                Subscription selectedSubscription = subscriptions.get(selectedSubscriptionIndex);
+                Card newCard = addCreditCard();
+                
+                if (janet.changeSubcritionPaymentMethod(selectedSubscription, newCard)) {
+                    notificacion.sendNotification(false, "Payment method changed successfully");
+                } else {
+                    notificacion.sendNotification(true, "Error changing payment method");
+                }
+
+                break;
+            default:
+                throw new AssertionError();
+        }
+        if (customer instanceof User user) {
+        
+            if (selection == 0) {
+              
                 
             } else if (selection == 1) {
                 if (user.addCreditCard(addCreditCard())) {
@@ -170,16 +207,17 @@ public class Main {
                 } else {
                     notificacion.sendNotification(true, "Invalid credeit car ");
                 }
+                Askmenu(userOptions);
             } else {
                 System.out.println("ERROR");
             }
-            Askmenu(userOptions);
+            
             }
              else {
             Admin admin = (Admin) customer;
             log(admin);
             } 
-            Askmenu(userOptions);
+          
     }
 }
 

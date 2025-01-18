@@ -11,6 +11,8 @@ import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
 import gestorAplicacion.plan.SubscriptionStatus;
 import gestorAplicacion.transactions.Card;
+import gestorAplicacion.transactions.Transaction;
+import gestorAplicacion.transactions.TransactionStatus;
 
 public class User extends Customer {
     private List<Card> creditCards;
@@ -24,6 +26,26 @@ public class User extends Customer {
         super(email, password, documentType, documentId);
         creditCards = new ArrayList<>();
         this.gateway = gateway;
+    }
+
+    public boolean changeSubcritionPaymentMethod(Subscription subscription, Card card) {
+        if (subscription == null) {
+            return false;
+        }
+        subscription.setCard(card);
+
+        Transaction transaction = new Transaction(
+            subscription.getPlan().getName(),
+            subscription.getUser(),
+            1,
+            TransactionStatus.PENDING
+
+            
+        );
+        subscription.processPayment(transaction, subscription.getGateway());
+        return transaction.getStatus() == TransactionStatus.ACCEPTED;
+        
+
     }
 
     public boolean addSubscription(Plan plan) {

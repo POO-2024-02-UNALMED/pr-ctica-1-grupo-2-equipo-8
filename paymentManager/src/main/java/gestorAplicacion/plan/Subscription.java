@@ -6,6 +6,7 @@ import gestorAplicacion.WithId;
 import gestorAplicacion.customers.User;
 import gestorAplicacion.gateways.Gateway;
 import gestorAplicacion.gateways.GatewaysFactory;
+import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
 import gestorAplicacion.transactions.TransactionStatus;
 
@@ -18,7 +19,11 @@ public class Subscription extends WithId {
     private Date startDate;
     private SubscriptionStatus status;
     private int numberOfCollectionAttempts = 0;
+    private Card card;
 
+    public void setCard(Card card) {
+        this.card = card;        
+    }
     public Subscription(User user, Plan plan, int durationDays) {
         super(createId(user.getEmail(), plan.getName()));
         this.durationDays = durationDays;
@@ -35,6 +40,18 @@ public class Subscription extends WithId {
         this.plan = plan;
         this.startDate = startDate;
         this.status = SubscriptionStatus.INACTIVE;
+    }
+
+    public Transaction processPayment(Transaction transaction, Gateway gateway) {        
+
+        GatewaysFactory.getGateway(gateway).pay(transaction);
+
+        return transaction;
+
+    }
+
+    public Gateway getGateway() {
+        return this.user.getGateway();
     }
 
     public Transaction processPayment(Gateway gateway) {
