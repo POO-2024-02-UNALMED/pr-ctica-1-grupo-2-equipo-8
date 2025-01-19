@@ -17,6 +17,8 @@ import gestorAplicacion.gateways.ProjectGateway;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
 import gestorAplicacion.transactions.Card;
+import gestorAplicacion.transactions.Transaction;
+import gestorAplicacion.transactions.TransactionStatus;
 
 
 public class Main {
@@ -201,7 +203,20 @@ public class Main {
                 for (int i = 0; i < subscription.size(); i++) {
                     subscriptionName[i] = subscription.get(i).getPlan().getName();
                 }
-                int selectedSubsIndex = askForSelection("Select a subscription", subscriptionName);
+                int selectedSubsIndex = askForSelection("Select a subscription to charge", subscriptionName);
+                Subscription selectedSubs = subscription.get(selectedSubsIndex);
+                Transaction transaction = new Transaction(
+                    selectedSubs.getPlan().getName(),
+                    janet,
+                    selectedSubs.getPlan().getPrice(),
+                    TransactionStatus.PENDING
+                );
+                selectedSubs.processPayment(transaction, selectedSubs.getGateway());
+                if (transaction.getStatus() == TransactionStatus.ACCEPTED) {
+                    notificacion.sendNotification(false, "Subscription charged successfully");
+                } else {
+                    notificacion.sendNotification(true, "Error charging subscription");
+                }
             Askmenu(userOptions);
                 break;
             default:
