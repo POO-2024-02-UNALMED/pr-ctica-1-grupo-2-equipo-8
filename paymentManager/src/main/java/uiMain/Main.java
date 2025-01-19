@@ -105,8 +105,8 @@ public class Main {
         Repository.save(essential);
 
         Admin defaultAdmin = new Admin(
-            "jdoe@gmail.com",
-            "A_VERY_SECURE_PASSWORD",
+            "jdoe",
+            "PASS",
             DocumentType.CC,
             "1234567890"
         );
@@ -141,8 +141,7 @@ public class Main {
 
         Repository.save(janet);
 
-        String [] userOptions = {"Add subscription", "Add credit card", "Change subscription paying metod"};
-        String [] adminOptions = {"Charge subscription", "Remove plan"};
+        String [] userOptions = {"Add subscription", "Add credit card", "Change subscription paying metod","Remove plan","Charge subscription"};
 
         // LOGIN
         Customer customer = login();
@@ -162,7 +161,6 @@ public class Main {
                 notificacion.sendNotification(false, "Subscription added successfully");
             } else {
                 notificacion.sendNotification(true, "Error adding subscription");               
-                
             }
             Askmenu(userOptions);
                 break;
@@ -171,36 +169,40 @@ public class Main {
                 if (janet.addCreditCard(addCreditCard())) {
                     notificacion.sendNotification(false, "Credit card added successfully");
                 } else {
-                    notificacion.sendNotification(true, "Invalid credeit car ");
+                    notificacion.sendNotification(true, "Invalid credit car");
                 }
-                Askmenu(userOptions);
+            Askmenu(userOptions);
                 break;
+            
             case 2://Change subscription paying metod ############
                 List<Subscription> subscriptions = janet.getSubscriptions();
                 String [] subscriptionNames = new String[subscriptions.size()];
-                
                 for (int i = 0; i < subscriptions.size(); i++) {
                     subscriptionNames[i] = subscriptions.get(i).getPlan().getName();
                 }
                 int selectedSubscriptionIndex = askForSelection("Select a subscription", subscriptionNames);
-
                 Subscription selectedSubscription = subscriptions.get(selectedSubscriptionIndex);
                 Card newCard = addCreditCard();
-                
                 if (janet.changeSubcritionPaymentMethod(selectedSubscription, newCard)) {
                     notificacion.sendNotification(false, "Payment method changed successfully");
                 } else {
                     notificacion.sendNotification(true, "Error changing payment method");
                 }
-
+            Askmenu(userOptions);
                 break;
 
             case 3: // Delete plan ############
-
+            Askmenu(userOptions);
                 break;
 
             case 4: // Charge subscription ############
-
+                List<Subscription> subscription = janet.getSubscriptions();
+                String [] subscriptionName = new String[subscription.size()];
+                for (int i = 0; i < subscription.size(); i++) {
+                    subscriptionName[i] = subscription.get(i).getPlan().getName();
+                }
+                int selectedSubsIndex = askForSelection("Select a subscription", subscriptionName);
+            Askmenu(userOptions);
                 break;
             default:
                 log("Invalid selection");
