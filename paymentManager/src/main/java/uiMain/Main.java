@@ -201,7 +201,7 @@ public class Main {
                 List<Subscription> subscription = janet.getSubscriptions();
                 String [] subscriptionName = new String[subscription.size()];
                 for (int i = 0; i < subscription.size(); i++) {
-                    subscriptionName[i] = subscription.get(i).getPlan().getName();
+                    subscriptionName[i] = subscription.get(i).getUser().getEmail()+" "+subscription.get(i).getPlan().getName();
                 }
                 int selectedSubsIndex = askForSelection("Select a subscription to charge", subscriptionName);
                 Subscription selectedSubs = subscription.get(selectedSubsIndex);
