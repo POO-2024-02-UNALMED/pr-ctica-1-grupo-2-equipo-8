@@ -42,7 +42,7 @@ public class Subscription extends WithId {
         this.status = SubscriptionStatus.INACTIVE;
     }
 
-    public Transaction processPayment(Transaction transaction, Gateway gateway) {        
+    public Transaction processPayment(Transaction transaction, Gateway gateway) {
 
         GatewaysFactory.getGateway(gateway).pay(transaction);
 

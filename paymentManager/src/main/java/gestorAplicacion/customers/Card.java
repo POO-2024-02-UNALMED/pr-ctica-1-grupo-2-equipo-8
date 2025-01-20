@@ -1,5 +1,5 @@
 package gestorAplicacion.customers;
-import gestorAplicacion.Notificacion;
+import gestorAplicacion.Notification;
 import gestorAplicacion.WithId;
 
 public class Card extends WithId {
@@ -24,7 +24,7 @@ public class Card extends WithId {
             
         }
         else{
-            Notificacion.sendNotification(true, "Saldo insuficiente", "No se puede realizar la transaccion");}
+            Notification.sendNotification(true, "Saldo insuficiente", "No se puede realizar la transaccion");}
         return false;
     }
     
