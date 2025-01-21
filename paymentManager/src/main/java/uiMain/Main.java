@@ -78,12 +78,10 @@ public class Main {
     }
 
     static Customer login () {
-        String[] roles = {"User", "Admin"};
-        int selection = askForSelection("Select your role: ", roles);
         String email = askString("Enter your email: ");
         String password = askForPassword("Enter your password: ");
         String id = WithId.createId(email, password);
-        Customer customer = (Customer) Repository.load(roles[selection], id);
+        Customer customer = (Customer) Repository.load("User", id);
         if (customer == null) {
             log("Invalid credentials");
             return login();
