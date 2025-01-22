@@ -1,5 +1,6 @@
 package uiMain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import baseDatos.Repository;
@@ -15,6 +16,7 @@ import gestorAplicacion.gateways.IGateway;
 import gestorAplicacion.gateways.ProjectGateway;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
+import gestorAplicacion.plan.SubscriptionStatus;
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
 import gestorAplicacion.transactions.TransactionStatus;
@@ -27,8 +29,11 @@ public class Main {
         "Add credit card",
         "Change subscription paying method",
         "Remove plan",
-        "Charge subscription"
+        "Charge subscription",
+        "Exit"
     };
+
+    static final String INVALID_OPTION_MESSAGE = "Invalid option, please select a valid option";
 
     static void log(Object object) {
         System.out.println(object);
@@ -58,23 +63,87 @@ public class Main {
         return System.console().readLine();
     }
 
-    static int askForSelection (String message, String [] options) {
+    static int askForSelection (String message, String[] options) {
         log(message);
         for (int i = 0; i < options.length; i++) {
             log(i + 1 + ". " + options[i]);
         }
         int selection = Integer.parseInt(System.console().readLine()) - 1;
         if (selection < 0 || selection > options.length) {
-            log("Invalid selection, please select a valid option");
+            log(INVALID_OPTION_MESSAGE);
             return askForSelection(message, options);
         }
         return selection;
     }
 
+    static int askForSelection (String message, List<String> options) {
+        System.out.println();
+        log(message);
+        for (int i = 0; i < options.size(); i++) {
+            log(i + 1 + ". " + options.get(i));
+        }
+        int selection = Integer.parseInt(System.console().readLine()) - 1;
+        if (selection < 0 || selection > options.size()) {
+            log(INVALID_OPTION_MESSAGE);
+            return askForSelection(message, options);
+        }
+        System.out.println();
+        return selection;
+    }
+
+    static int showOptionAsTable(String message, String[] headers, List<String[]> rows) {
+        System.out.println();
+        log(message);
+        printTable(headers, rows);
+        int selection = Integer.parseInt(System.console().readLine()) - 1;
+        if (selection < 0 || selection >= rows.size()) {
+            log(INVALID_OPTION_MESSAGE);
+            return showOptionAsTable(message, headers, rows);
+        }
+        System.out.println();
+        return selection;
+    }
 
     static String askForPassword (String message) {
         log(message);
         return new String(System.console().readPassword());
+    }
+
+    private static void printTable(String[] headers, List<String[]> rows) {
+        // Determine column widths
+        int[] columnWidths = new int[headers.length];
+        for (int i = 0; i < headers.length; i++) {
+            columnWidths[i] = headers[i].length();
+        }
+        for (String[] row : rows) {
+            for (int i = 0; i < row.length; i++) {
+                columnWidths[i] = Math.max(columnWidths[i], row[i].length());
+            }
+        }
+
+        // Print header
+        printRow(headers, columnWidths);
+        printSeparator(columnWidths);
+
+        // Print rows
+        for (String[] row : rows) {
+            printRow(row, columnWidths);
+        }
+    }
+
+    private static void printRow(String[] row, int[] columnWidths) {
+        for (int i = 0; i < row.length; i++) {
+            System.out.printf("| %-"+columnWidths[i]+"s ", row[i]);
+        }
+        System.out.println("|");
+    }
+
+    private static void printSeparator(int[] columnWidths) {
+        for (int width : columnWidths) {
+            System.out.print("+");
+            System.out.print("-".repeat(width + 2));
+        }
+        System.out.println("+");
     }
 
     static Customer login () {
@@ -91,26 +160,55 @@ public class Main {
 
     static void log(String[] messages, boolean success) {
         if (success) {
-            Notification.sendNotification(false, messages[0] );
+            Notification.sendNotification(false, messages[0]);
         } else {
             Notification.sendNotification(true, messages[1]);
         }
     }
 
     static void runFeature(User user, Admin admin) {
+        System.out.println();
         int feature = askForSelection("Select function", FEATURES);
         switch (feature) {
             case 0: // Add subscription
                 List<Plan> plans = Plan.getAll();
-                String[] planNames = new String[plans.size()];
+                List<Plan> userPlans = user.getUserSubscribedPlans();
+                List<String> userSubscribedPlansNames = new ArrayList<>();
+                List<Plan> nonSubscribePlans = new ArrayList<>();
 
-                for (int i = 0; i < plans.size(); i++) {
-                    planNames[i] = plans.get(i).getName();
+                String[] headers = {"ID", "Name", "Description", "Price"};
+                List<String[]> rows =  new ArrayList<>();
+
+                for (int i = 0; i < userPlans.size(); i++) {
+                    userSubscribedPlansNames.add(userPlans.get(i).getName());
                 }
 
-                int selectedPlanIndex = askForSelection("Select a plan", planNames);
-                boolean subscriptionAdded = user.addSubscription(plans.get(selectedPlanIndex));
-                log(new String [] {"Subscription added successfully", "Error adding subscription"}, subscriptionAdded);
+                int count = 0;
+
+                for (int i = 0; i < plans.size(); i++) {
+                    if (!userSubscribedPlansNames.contains(plans.get(i).getName())) {
+                        count++;
+                        rows.add(new String[] {
+                            String.valueOf(count),
+                            plans.get(i).getName(),
+                            plans.get(i).getDescription(),
+                            String.valueOf(plans.get(i).getPrice())
+                        });
+                        nonSubscribePlans.add(plans.get(i));
+                    }
+                }
+
+                int selectedPlanIndex = showOptionAsTable("Select the plan you want to subscribe", headers, rows);
+                Subscription addedSubscription = user.addSubscription(nonSubscribePlans.get(selectedPlanIndex));
+                log(
+                    new String [] {"Subscription added successfully", "Error adding subscription"},
+                    addedSubscription.getStatus() == SubscriptionStatus.ACTIVE
+                );
+
+                String[] headers2 = {"Name", "Status"};
+                List<String[]> rows2 = new ArrayList<>();
+                rows2.add(new String[] {addedSubscription.getPlan().getName(), addedSubscription.getStatus().toString()});
+                printTable(headers2, rows2);
 
                 runFeature(user, admin);
                 break;
@@ -162,6 +260,10 @@ public class Main {
                 runFeature(user, admin);
                 break;
 
+            case 5:
+                log("Thanks for using our service");
+                break;
+
             default:
                 log("Invalid selection");
         }
@@ -207,8 +309,6 @@ public class Main {
             "123"
         );
         user.addCreditCard(card);
-        user.addSubscription(advanced);
-        user.addSubscription(smart);
         user.addSubscription(basic);
         Repository.save(user);
 

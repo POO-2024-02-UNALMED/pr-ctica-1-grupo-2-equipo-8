@@ -39,26 +39,19 @@ public class User extends Customer {
             subscription.getUser(),
             1,
             TransactionStatus.PENDING
-
-            
         );
         subscription.processPayment(transaction, subscription.getGateway());
         return transaction.getStatus() == TransactionStatus.ACCEPTED;
-        
-
     }
 
-    public boolean addSubscription(Plan plan) {
-        List<Plan> userPlans = getPlans();
-        if (userPlans.contains(plan)) {
-            return false;
-        }
+    public Subscription addSubscription(Plan plan) {
         Subscription subscription = new Subscription(this, plan, 1);
        if (hasCreditCard()) {
             subscription.processPayment(this.gateway);
         }
 
         Repository.save(subscription, "Subscription" + File.separator + subscription.getPlan().getName());
+
         if (this.subscriptions != null) {
             subscriptions.add(subscription);
         } else {
@@ -66,10 +59,10 @@ public class User extends Customer {
             this.subscriptions.add(subscription);
         }
 
-       return subscription.getStatus() == SubscriptionStatus.ACTIVE;
+       return subscription;
     }
 
-    public List<Plan> getPlans() {
+    public List<Plan> getUserSubscribedPlans() {
         ArrayList<Subscription> useSubscriptions = (ArrayList<Subscription>) getSubscriptions();
         ArrayList<Plan> plans = new ArrayList<>();
         for (Subscription subscription : useSubscriptions) {
