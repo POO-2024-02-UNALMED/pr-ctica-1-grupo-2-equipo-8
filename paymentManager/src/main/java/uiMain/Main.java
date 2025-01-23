@@ -236,6 +236,16 @@ public class Main {
                 break;
 
             case 3: // Delete plan
+                List<Subscription> subscriptio = user.getSubscriptions();
+                String [] subscriptionNamesToDelete = new String[subscriptio.size()];
+                for (int i = 0; i < subscriptio.size(); i++) {
+                    subscriptionNamesToDelete[i] = subscriptio.get(i).getUser().getEmail()+" "+subscriptio.get(i).getPlan().getName();
+                }
+                int selectedSubsIndexs = askForSelection("Select a subscription to delete", subscriptionNamesToDelete);
+                Subscription selectedSub = subscriptio.get(selectedSubsIndexs);
+                
+                System.out.println(subscriptionNamesToDelete[selectedSubsIndexs]);
+                subscriptio.remove(selectedSubsIndexs);
                 runFeature(user, admin);
                 break;
 

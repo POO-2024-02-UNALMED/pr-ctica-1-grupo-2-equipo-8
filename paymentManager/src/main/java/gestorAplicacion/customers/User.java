@@ -9,7 +9,6 @@ import gestorAplicacion.WithId;
 import gestorAplicacion.gateways.Gateway;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
-import gestorAplicacion.plan.SubscriptionStatus;
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
 import gestorAplicacion.transactions.TransactionStatus;
@@ -113,4 +112,6 @@ public class User extends Customer {
     public Gateway getGateway() {
         return gateway;
     }
+
+
 }
