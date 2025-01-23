@@ -276,7 +276,28 @@ public class Main {
                 for (int i = 0; i < subscription.size(); i++) {
                     subscriptionName[i] = subscription.get(i).getUser().getEmail()+" "+subscription.get(i).getPlan().getName();
                 }
-                int selectedSubsIndex = askForSelection("Select a subscription to charge", subscriptionName);
+                
+                
+                String[] headers5 = {"ID", "Name", "Subscription", "Price"};
+                List<String[]> rows5 = new ArrayList<String[]>();
+
+                int count5 = 0;
+
+                for (int i = 0; i < subscription.size(); i++) {
+                    if (!java.util.Arrays.asList(subscriptionName).contains(subscription.get(i).getPlan().getName())) {
+                        count5++;
+                        rows5.add(new String[] {
+                            String.valueOf(count5),
+                            user.getUserSubscribedPlans().get(i).getName(),
+                            user.getUserSubscribedPlans().get(i).getDescription(),
+                            String.valueOf(subscription.get(i).getPlan().getPrice())
+                        });
+                        
+                    }
+                }
+
+                int selectedSubsIndex= showOptionAsTable("Select the subscription yoy want to charge", headers5, rows5);
+
                 Subscription selectedSubs = subscription.get(selectedSubsIndex);
                 Transaction transaction = new Transaction(
                     selectedSubs.getPlan().getName(),
