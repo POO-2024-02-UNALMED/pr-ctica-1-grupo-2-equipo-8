@@ -174,7 +174,7 @@ public class Main {
                 List<Plan> plans = Plan.getAll();
                 List<Plan> userPlans = user.getUserSubscribedPlans();
                 List<String> userSubscribedPlansNames = new ArrayList<>();
-                List<Plan> nonSubscribePlans = new ArrayList<>();
+                List<Plan> nonSubscribePlans = new ArrayList<Plan>();
 
                 String[] headers = {"ID", "Name", "Description", "Price"};
                 List<String[]> rows =  new ArrayList<>();
@@ -236,20 +236,41 @@ public class Main {
                 break;
 
             case 3: // Delete plan
+
                 List<Subscription> subscriptio = user.getSubscriptions();
                 String [] subscriptionNamesToDelete = new String[subscriptio.size()];
                 for (int i = 0; i < subscriptio.size(); i++) {
                     subscriptionNamesToDelete[i] = subscriptio.get(i).getUser().getEmail()+" "+subscriptio.get(i).getPlan().getName();
                 }
-                int selectedSubsIndexs = askForSelection("Select a subscription to delete", subscriptionNamesToDelete);
-                Subscription selectedSub = subscriptio.get(selectedSubsIndexs);
+
+              
                 
-                System.out.println(subscriptionNamesToDelete[selectedSubsIndexs]);
-                subscriptio.remove(selectedSubsIndexs);
+                String[] headers4 = {"ID", "Name", "Description", "Price"};
+                List<String[]> rows4 = new ArrayList<String[]>();
+
+                int count2 = 0;
+
+                for (int i = 0; i < subscriptio.size(); i++) {
+                    if (!java.util.Arrays.asList(subscriptionNamesToDelete).contains(subscriptio.get(i).getPlan().getName())) {
+                        count2++;
+                        rows4.add(new String[] {
+                            String.valueOf(count2),
+                            subscriptio.get(i).getPlan().getName(),
+                            subscriptio.get(i).getPlan().getDescription(),
+                            String.valueOf(subscriptio.get(i).getPlan().getPrice())
+                        });
+                        
+                    }
+                }
+                
+                int selectedPlanIndex4 = showOptionAsTable("Select the plan you want to delete", headers4, rows4);
+                
+                subscriptio.remove(selectedPlanIndex4);
                 runFeature(user, admin);
                 break;
 
             case 4: // Charge subscription
+
                 List<Subscription> subscription = user.getSubscriptions();
                 String [] subscriptionName = new String[subscription.size()];
                 for (int i = 0; i < subscription.size(); i++) {
