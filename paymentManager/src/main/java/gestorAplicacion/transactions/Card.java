@@ -20,7 +20,7 @@ public class Card extends WithId {
         this.gateway = gateway;
     }
 
-    public String getDueDate() {
+    public String getExpirationDate() {
         return dueDate;
     }
 

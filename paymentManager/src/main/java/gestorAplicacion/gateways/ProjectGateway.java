@@ -15,8 +15,8 @@ public class ProjectGateway extends Authenticate implements IGateway {
         return transaction;
     }
 
-    private static boolean validate(String cardNumber, String cardHolder, String expirationDate, String cvv) {
-        return cardNumber.length() == 16
+    public static boolean validate(String cardNumber, String cardHolder, String expirationDate, String cvv) {
+        return cardNumber.length() > 4
                 && !cardHolder.isEmpty()
                 && expirationDate.length() == 5
                 && cvv.length() == 3;
@@ -41,7 +41,7 @@ public class ProjectGateway extends Authenticate implements IGateway {
             return null;
         }
         return new Card(
-            cardNumber.substring(11, 15),
+            cardNumber.substring(cardNumber.length() - 4, cardNumber.length()),
             expirationDate,
             Card.getFranchise(cardNumber),
             generateCardToken(cardNumber, cardHolder, expirationDate), Gateway.PROJECT_GATEWAY

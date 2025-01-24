@@ -21,9 +21,6 @@ public class Subscription extends WithId {
     private int numberOfCollectionAttempts = 0;
     private Card card;
 
-    public void setCard(Card card) {
-        this.card = card;        
-    }
     public Subscription(User user, Plan plan, int durationDays) {
         super(createId(user.getEmail(), plan.getName()));
         this.durationDays = durationDays;
@@ -34,18 +31,24 @@ public class Subscription extends WithId {
     }
 
     public Subscription(User user, Plan plan, int durationDays, Date startDate) {
-        super(createId(user.getEmail(), plan.getName()));
-        this.durationDays = durationDays;
-        this.user = user;
-        this.plan = plan;
+        this(user, plan, durationDays);
         this.startDate = startDate;
         this.status = SubscriptionStatus.INACTIVE;
+    }
+
+    public Subscription(User user, Plan plan, int durationDays, Card card) {
+        this(user, plan, durationDays);
+        this.card = card;
+    }
+
+    public Subscription(User user, Plan plan, int durationDays, Date startDate, Card card) {
+        this(user, plan, durationDays, startDate);
+        this.card = card;
     }
 
     public Transaction processPayment(Transaction transaction, Gateway gateway) {
 
         GatewaysFactory.getGateway(gateway).pay(transaction);
-
         return transaction;
 
     }
@@ -89,6 +92,14 @@ public class Subscription extends WithId {
         return user;
     }
 
+    public Card getPaymentMethod () {
+        if(this.card == null) {
+            return this.user.getCreditCards().get(0);
+        }
+
+        return this.card;
+    }
+
     public void setUser(User user) {
         this.user = user;
     }
@@ -99,6 +110,10 @@ public class Subscription extends WithId {
 
     public void setPlan(Plan plan) {
         this.plan = plan;
+    }
+
+    public void setPaymentMethod(Card card) {
+        this.card = card;
     }
 
     public int getDurationDays() {

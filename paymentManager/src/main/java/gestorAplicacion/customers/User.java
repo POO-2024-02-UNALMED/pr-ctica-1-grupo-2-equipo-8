@@ -27,11 +27,11 @@ public class User extends Customer {
         this.gateway = gateway;
     }
 
-    public boolean changeSubcritionPaymentMethod(Subscription subscription, Card card) {
+    public boolean changeSubscriptionPaymentMethod(Subscription subscription, Card card) {
         if (subscription == null) {
             return false;
         }
-        subscription.setCard(card);
+        subscription.setPaymentMethod(card);
 
         Transaction transaction = new Transaction(
             subscription.getPlan().getName(),
@@ -43,22 +43,31 @@ public class User extends Customer {
         return transaction.getStatus() == TransactionStatus.ACCEPTED;
     }
 
-    public Subscription addSubscription(Plan plan) {
-        Subscription subscription = new Subscription(this, plan, 1);
-       if (hasCreditCard()) {
-            subscription.processPayment(this.gateway);
-        }
-
+    private void saveOnRepositoryAndAddToSubscriptions(Subscription subscription) {
         Repository.save(subscription, "Subscription" + File.separator + subscription.getPlan().getName());
-
         if (this.subscriptions != null) {
             subscriptions.add(subscription);
         } else {
             this.subscriptions = new ArrayList<>();
             this.subscriptions.add(subscription);
         }
+    }
 
-       return subscription;
+    public Transaction addSubscription(Plan plan) {
+        Subscription subscription = new Subscription(this, plan, 1);
+        Transaction initialChargeTransaction = null;
+       if (hasCreditCard()) {
+            initialChargeTransaction = subscription.processPayment(this.gateway);
+        }
+        saveOnRepositoryAndAddToSubscriptions(subscription);
+       return initialChargeTransaction;
+    }
+
+    public Transaction addSubscription(Plan plan, Card card) {
+        Subscription subscription = new Subscription(this, plan, 1, card);
+        Transaction initialChargeTransaction = subscription.processPayment(this.gateway);
+        saveOnRepositoryAndAddToSubscriptions(subscription);
+       return initialChargeTransaction;
     }
 
     public List<Plan> getUserSubscribedPlans() {
@@ -95,22 +104,26 @@ public class User extends Customer {
     }
 
     public boolean hasCreditCard() {
-        return !creditCards.isEmpty();
+        return !this.creditCards.isEmpty();
     }
 
     public boolean addCreditCard(Card card) {
-        return creditCards.add(card);
+        return this.creditCards.add(card);
     }
 
     public void removeCreditCard(Card card) {
         if (card != null) {
             card.delete();
-            creditCards.remove(card);
+            this.creditCards.remove(card);
         }
     }
 
+    public List<Card> getCreditCards() {
+        return this.creditCards;
+    }
+
     public Gateway getGateway() {
-        return gateway;
+        return this.gateway;
     }
 
 

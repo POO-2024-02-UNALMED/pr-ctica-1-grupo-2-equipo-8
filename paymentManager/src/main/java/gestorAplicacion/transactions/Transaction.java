@@ -27,12 +27,21 @@ public class Transaction extends WithId {
     }
 
     public Transaction(String description, User user, double price, TransactionStatus status) {
-        super(createId(getMontAndYear(), user.getEmail()));
-        this.description = description;
-        this.price = price;
+        this(description, user, price);
         this.userEmail = user.getEmail();
         this.gateway = user.getGateway();
         this.status = status;
+    }
+
+    public Transaction(
+        String description,
+        User user,
+        double price,
+        TransactionStatus status,
+        Card card
+    ) {
+        this(description, user, price, status);
+        this.paymentMethod = card;
     }
 
     public Card getPaymentMethod() {
