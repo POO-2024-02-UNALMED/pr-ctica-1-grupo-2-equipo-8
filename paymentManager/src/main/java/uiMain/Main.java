@@ -2,9 +2,9 @@ package uiMain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import baseDatos.Repository;
-import gestorAplicacion.Notification;
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
 import gestorAplicacion.customers.Customer;
@@ -28,14 +28,19 @@ public class Main {
         "Add credit card",
         "Change subscription paying method",
         "Remove plan",
-        "Charge subscription",
+        "Pay subscription",
         "Exit"
     };
 
     static final String INVALID_OPTION_MESSAGE = "Invalid option, please select a valid option";
 
-    static void log(Object object) {
+    static void logLn(Object object) {
         System.out.println(object);
+    }
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
+
+    static void log(Object object) {
+        System.out.print(object.toString() + " ");
     }
 
     static Card addCreditCard() {
@@ -44,7 +49,7 @@ public class Main {
         String expirationDate = askString("Enter the due date of your credit card (MM/YY)");
         String cvv = askString("Enter the CVV of your credit card");
         if (!ProjectGateway.validate(cardNumber, cardHolder, expirationDate, cvv)) {
-            log("Invalid credit card information");
+            logLn("Invalid credit card information");
             return addCreditCard();
         }
         ProjectGateway projectGateway = new ProjectGateway();
@@ -57,36 +62,35 @@ public class Main {
     }
 
     static int askForSelection (String message, String[] options) {
-        log(message);
+        logLn(message);
         for (int i = 0; i < options.length; i++) {
-            log(i + 1 + ". " + options[i]);
+            logLn(i + 1 + ". " + options[i]);
         }
         int selection = Integer.parseInt(System.console().readLine()) - 1;
         if (selection < 0 || selection > options.length) {
-            log(INVALID_OPTION_MESSAGE);
+            logLn(INVALID_OPTION_MESSAGE);
             return askForSelection(message, options);
         }
         return selection;
     }
 
     static int askForSelection (String message, List<String> options) {
-        System.out.println();
-        log(message);
+        logLn(message);
         for (int i = 0; i < options.size(); i++) {
-            log(i + 1 + ". " + options.get(i));
+            logLn(i + 1 + ". " + options.get(i));
         }
         int selection = Integer.parseInt(System.console().readLine()) - 1;
         if (selection < 0 || selection > options.size()) {
-            log(INVALID_OPTION_MESSAGE);
+            logLn(INVALID_OPTION_MESSAGE);
             return askForSelection(message, options);
         }
-        System.out.println();
+        logLn("");
         return selection;
     }
 
     static void showInformation(String message, String[] headers, List<String[]> rows) {
-        System.out.println();
-        log(message);
+        logLn("");
+        logLn(message);
         printTable(headers, rows);
     }
 
@@ -94,15 +98,15 @@ public class Main {
         showInformation(message, headers, rows);
         int selection = Integer.parseInt(System.console().readLine()) - 1;
         if (selection < 0 || selection >= rows.size()) {
-            log(INVALID_OPTION_MESSAGE);
+            logLn(INVALID_OPTION_MESSAGE);
             return askForSelectionOnTableFormat(message, headers, rows);
         }
-        System.out.println();
+        logLn("");
         return selection;
     }
 
     static String askForPassword (String message) {
-        log(message);
+        logLn(message);
         return new String(System.console().readPassword());
     }
 
@@ -149,7 +153,7 @@ public class Main {
         String id = WithId.createId(email, password);
         Customer customer = (Customer) Repository.load("User", id);
         if (customer == null) {
-            log("Invalid credentials");
+            logLn("Invalid credentials");
             return login();
         }
         return customer;
@@ -157,18 +161,22 @@ public class Main {
 
     static void log(String[] messages, boolean success) {
         if (success) {
-            Notification.sendNotification(false, messages[0]);
+            if (LOGGER.isLoggable(java.util.logging.Level.INFO)) {
+                LOGGER.info(String.format("SUCCESS: %s%n", messages[0]));
+            }
         } else {
-            Notification.sendNotification(true, messages[1]);
+            if (LOGGER.isLoggable(java.util.logging.Level.WARNING)) {
+                LOGGER.warning(String.format("ERROR: %s%n", messages[1]));
+            }
         }
     }
 
     static Subscription showUserSubscriptions(User user, String message, boolean informative) {
         List<Subscription> subscriptions = user.getSubscriptions();
-        String[] headers = {"ID", "Plan", "Status", "Next charge date", "Payment method"};
-        List<String[]> rows = new ArrayList<>();
+        String[] subsHeaders = {"ID", "Plan", "Status", "Next charge date", "Payment method"};
+        List<String[]> subsInfo = new ArrayList<>();
         for (int i = 0; i < subscriptions.size(); i++) {
-            rows.add(new String[] {
+            subsInfo.add(new String[] {
                 String.valueOf(i + 1),
                 subscriptions.get(i).getPlan().getName(),
                 subscriptions.get(i).getStatus().toString(),
@@ -179,11 +187,80 @@ public class Main {
             });
         }
         if (informative) {
+            showInformation(message, subsHeaders, subsInfo);
+            return null;
+        }
+        int selectedSubscription =  askForSelectionOnTableFormat(message, subsHeaders, subsInfo);
+        return subscriptions.get(selectedSubscription);
+    }
+
+    static Plan showPlans(List<Plan> plans, String message, boolean informative) {
+        String[] plansHeaders = {"ID", "Name", "Description", "Price"};
+        List<String[]> plansInfo =  new ArrayList<>();
+        for (int i = 0; i < plans.size(); i++) {
+            plansInfo.add(new String[] {
+                String.valueOf(i + 1),
+                plans.get(i).getName(),
+                plans.get(i).getDescription(),
+                String.valueOf(plans.get(i).getPrice())
+            });
+        }
+        if (informative) {
+            showInformation(message, plansHeaders, plansInfo);
+            return null;
+        }
+
+        int selectedPlanIndex = askForSelectionOnTableFormat(message, plansHeaders, plansInfo);
+        return plans.get(selectedPlanIndex);
+    }
+
+    static Transaction processTransaction(User user, Card card, double price, String description) {
+        logLn("We will process the following transaction");
+        Transaction transaction = new Transaction(
+            description,
+            user,
+            price,
+            TransactionStatus.PENDING,
+            card
+        );
+        String[] headers = {"Description", "Price", "Status", "Payment method"};
+        List<String[]> rows = new ArrayList<>();
+        rows.add(new String[] {
+            transaction.getDescription(),
+            String.valueOf(transaction.getPrice()),
+            transaction.getStatus().toString(),
+            transaction.getPaymentMethod().getLastFour() +
+            "-" + transaction.getPaymentMethod().getFranchise().toString() +
+            "-" + transaction.getPaymentMethod().getExpirationDate()
+        });
+        printTable(headers, rows);
+        int accept = askForSelection("do you agree?", new String [] {"Yes", "No"});
+        if (accept != 0) {
+            transaction.setStatus(TransactionStatus.REJECTED);
+            return transaction;
+        }
+
+        GatewaysFactory.getGateway(Gateway.PROJECT_GATEWAY).pay(transaction);
+        return transaction;
+    }
+
+    static Card showCardsInfo(List<Card> cards, String message, boolean informative) {
+        String[] headers = {"ID", "Last four digits", "Expiration date", "Franchise"};
+        List<String[]> rows = new ArrayList<>();
+        for (Card card : cards) {
+            rows.add(new String[] {
+                String.valueOf(cards.indexOf(card) + 1),
+                card.getLastFour(),
+                card.getExpirationDate(),
+                card.getFranchise().toString()
+            });
+        }
+        if (informative) {
             showInformation(message, headers, rows);
             return null;
         }
-        int selectedSubscription =  askForSelectionOnTableFormat(message, headers, rows);
-        return subscriptions.get(selectedSubscription);
+        int selectedCardIndex = askForSelectionOnTableFormat(message, headers, rows);
+        return cards.get(selectedCardIndex);
     }
 
     static void addSubscription(User user) {
@@ -192,55 +269,31 @@ public class Main {
         List<String> userSubscribedPlansNames = new ArrayList<>();
         List<Plan> nonSubscribePlans = new ArrayList<>();
 
+        for (Plan plan : userPlans) {
+            userSubscribedPlansNames.add(plan.getName());
+        }
+
+        for (int i = 0; i < plans.size(); i++) {
+            if (!userSubscribedPlansNames.contains(plans.get(i).getName())) {
+                nonSubscribePlans.add(plans.get(i));
+            }
+        }
         if(nonSubscribePlans.isEmpty()) {
             showUserSubscriptions(user, "You are already subscribed to all available plans", true);
             return;
         }
 
-        String[] header1Fun1 = {"ID", "Name", "Description", "Price"};
-        List<String[]> rows1Fun1 =  new ArrayList<>();
-
-        for (int i = 0; i < userPlans.size(); i++) {
-            userSubscribedPlansNames.add(userPlans.get(i).getName());
-        }
-
-        int count = 0;
-        for (int i = 0; i < plans.size(); i++) {
-            if (!userSubscribedPlansNames.contains(plans.get(i).getName())) {
-                count++;
-                rows1Fun1.add(new String[] {
-                    String.valueOf(count),
-                    plans.get(i).getName(),
-                    plans.get(i).getDescription(),
-                    String.valueOf(plans.get(i).getPrice())
-                });
-                nonSubscribePlans.add(plans.get(i));
-            }
-        }
-
-        int selectedPlanIndex = askForSelectionOnTableFormat("Select the plan you want to subscribe", header1Fun1, rows1Fun1);
-
+        Plan selectedPlan = showPlans(nonSubscribePlans, "Select the plan you want to subscribe", false);
         List<Card> creditCards = user.getCreditCards();
         if (creditCards.isEmpty()) {
-            log("You need to add a credit card to subscribe to a plan");
+            logLn("You need to add a credit card to subscribe to a plan");
             user.addCreditCard(addCreditCard());
         }
 
-        String[] headers2Fun1 = {"ID", "Last four digits", "Expiration date", "Franchise"};
-        List<String[]> rows2Fun1 = new ArrayList<>();
-        for (int i = 0; i < creditCards.size(); i++) {
-            rows2Fun1.add(new String[] {
-                String.valueOf(i + 1),
-                creditCards.get(i).getLastFour(),
-                creditCards.get(i).getExpirationDate(),
-                creditCards.get(i).getFranchise().toString()
-            });
-        }
-
-        int selectedCardIndex = askForSelectionOnTableFormat("Select the credit card you want to use", headers2Fun1, rows2Fun1);
+        Card selectedCard = showCardsInfo(creditCards, "Select the credit card you want to use", false);
         Transaction initialTransaction = user.addSubscription(
-            nonSubscribePlans.get(selectedPlanIndex),
-            creditCards.get(selectedCardIndex)
+            selectedPlan,
+            selectedCard
         );
 
         log(
@@ -251,7 +304,7 @@ public class Main {
         String[] headers3Fun1 = {"Plan Name", "Transaction Status", "Subscription Status"};
         List<String[]> rows3Fun1 = new ArrayList<>();
         rows3Fun1.add(new String[] {
-            nonSubscribePlans.get(selectedPlanIndex).getName(),
+            selectedPlan.getName(),
             initialTransaction.getStatus().toString(),
             initialTransaction.getStatus() == TransactionStatus.ACCEPTED ? "ACTIVE" : "PENDING",
         });
@@ -260,32 +313,14 @@ public class Main {
 
     static void addUserCreditCard(User user) {
         Card cardToAdd = addCreditCard();
-        int accept = askForSelection("We will charge your card to validate it, dou you agree?", new String [] {"Yes", "No"});
-        if (accept != 0) {
+        Transaction verificationTransaction = processTransaction(user, cardToAdd, 1, "Credit card Validation");
+        if (verificationTransaction.getStatus() != TransactionStatus.ACCEPTED) {
+            logLn("Invalid credit card");
             return;
         }
-
-        Transaction verificationTransaction = new Transaction(
-            "Credit card Validation",
-            user,
-            100,
-            TransactionStatus.PENDING,
-            cardToAdd
-        );
-        GatewaysFactory.getGateway(Gateway.PROJECT_GATEWAY).pay(verificationTransaction);
         boolean creditCardAdded = user.addCreditCard(cardToAdd);
         log(new String [] {"Credit card added successfully", "Invalid credit card"}, creditCardAdded);
-        String[] headers1Fun2 = {"Last Four Digits", "Status", "Gateway", "Franchise"};
-        List<String[]> rows1Fun2 = new ArrayList<>();
-        for (Card card : user.getCreditCards()) {
-            rows1Fun2.add(new String[] {
-                card.getLastFour(),
-                "VALID",
-                user.getGateway().toString(),
-                card.getFranchise().toString()
-            });
-        }
-        printTable(headers1Fun2, rows1Fun2);
+        showCardsInfo(user.getCreditCards(), "", true);
     }
 
     static void changeSubscriptionPaymentMethod(User user) {
@@ -296,7 +331,7 @@ public class Main {
     }
 
     static void runFeature(User user, Admin admin) {
-        System.out.println();
+        logLn("--------------------------------------------------------");
         int feature = askForSelection("Select function", FEATURES);
         switch (feature) {
             case 0:
@@ -345,53 +380,26 @@ public class Main {
                 runFeature(user, admin);
                 break;
 
-            case 4: // Charge subscription
-
-                List<Subscription> subscription = user.getSubscriptions();
-                String [] subscriptionName = new String[subscription.size()];
-                for (int i = 0; i < subscription.size(); i++) {
-                    subscriptionName[i] = subscription.get(i).getUser().getEmail()+" "+subscription.get(i).getPlan().getName();
-                }
-
-                String[] headers5 = {"ID", "Name", "Subscription", "Price"};
-                List<String[]> rows5 = new ArrayList<>();
-
-                int count5 = 0;
-
-                for (int i = 0; i < subscription.size(); i++) {
-                    if (!java.util.Arrays.asList(subscriptionName).contains(subscription.get(i).getPlan().getName())) {
-                        count5++;
-                        rows5.add(new String[] {
-                            String.valueOf(count5),
-                            user.getUserSubscribedPlans().get(i).getName(),
-                            user.getUserSubscribedPlans().get(i).getDescription(),
-                            String.valueOf(subscription.get(i).getPlan().getPrice())
-                        });
-                    }
-                }
-
-                int selectedSubsIndex= askForSelectionOnTableFormat("Select the subscription yoy want to charge", headers5, rows5);
-
-                Subscription selectedSubs = subscription.get(selectedSubsIndex);
-                Transaction transaction = new Transaction(
-                    selectedSubs.getPlan().getName(),
+            case 4: // Pay subscription
+                Subscription subsToPay = showUserSubscriptions(user, "Select the subscription you want to pay", false);
+                Transaction transaction = processTransaction(
                     user,
-                    selectedSubs.getPlan().getPrice(),
-                    TransactionStatus.PENDING
+                    subsToPay.getPaymentMethod(),
+                    subsToPay.getPlan().getPrice(),
+                    subsToPay.getPlan().getName()
                 );
-                selectedSubs.processPayment(transaction, selectedSubs.getGateway());
-
+                subsToPay.processPayment(transaction, subsToPay.getGateway());
                 boolean charged = transaction.getStatus() == TransactionStatus.ACCEPTED;
                 log(new String [] {"Subscription charged successfully", "Error charging subscription"}, charged);
                 runFeature(user, admin);
                 break;
 
             case 5:
-                log("Thanks for using our service");
+                logLn("Thanks for using our service");
                 break;
 
             default:
-                log("Invalid selection");
+                logLn("Invalid selection");
                 runFeature(user, admin);
         }
     }
@@ -450,7 +458,7 @@ public class Main {
         // LOGIN
         Customer customer = login();
         if (customer == null) {
-            log("Invalid credentials");
+            logLn("Invalid credentials");
             return;
         }
 

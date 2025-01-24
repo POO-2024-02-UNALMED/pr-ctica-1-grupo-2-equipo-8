@@ -54,7 +54,7 @@ public class User extends Customer {
     }
 
     public Transaction addSubscription(Plan plan) {
-        Subscription subscription = new Subscription(this, plan, 1);
+        Subscription subscription = new Subscription(this, plan);
         Transaction initialChargeTransaction = null;
        if (hasCreditCard()) {
             initialChargeTransaction = subscription.processPayment(this.gateway);
@@ -64,7 +64,7 @@ public class User extends Customer {
     }
 
     public Transaction addSubscription(Plan plan, Card card) {
-        Subscription subscription = new Subscription(this, plan, 1, card);
+        Subscription subscription = new Subscription(this, plan, card);
         Transaction initialChargeTransaction = subscription.processPayment(this.gateway);
         saveOnRepositoryAndAddToSubscriptions(subscription);
        return initialChargeTransaction;

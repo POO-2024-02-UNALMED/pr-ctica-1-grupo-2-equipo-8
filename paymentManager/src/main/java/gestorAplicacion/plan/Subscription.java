@@ -14,43 +14,41 @@ public class Subscription extends WithId {
     private static final long serialVersionUID = 2L;
     private transient User user;
     private transient Plan plan;
-    private int durationDays;
     private Date nextChargeDate;
     private Date startDate;
     private SubscriptionStatus status;
     private int numberOfCollectionAttempts = 0;
     private Card card;
 
-    public Subscription(User user, Plan plan, int durationDays) {
+    public Subscription(User user, Plan plan) {
         super(createId(user.getEmail(), plan.getName()));
-        this.durationDays = durationDays;
         this.user = user;
         this.plan = plan;
         this.startDate = new Date();
         this.status = SubscriptionStatus.INACTIVE;
     }
 
-    public Subscription(User user, Plan plan, int durationDays, Date startDate) {
-        this(user, plan, durationDays);
-        this.startDate = startDate;
-        this.status = SubscriptionStatus.INACTIVE;
+    public Subscription(User user, Plan plan, Date startDate) {
+        this(user, plan);
+        if (startDate.after(new Date())) {
+            this.startDate = startDate;
+            this.nextChargeDate = startDate;
+        }
     }
 
-    public Subscription(User user, Plan plan, int durationDays, Card card) {
-        this(user, plan, durationDays);
+    public Subscription(User user, Plan plan, Card card) {
+        this(user, plan);
         this.card = card;
     }
 
-    public Subscription(User user, Plan plan, int durationDays, Date startDate, Card card) {
-        this(user, plan, durationDays, startDate);
+    public Subscription(User user, Plan plan, Date startDate, Card card) {
+        this(user, plan, startDate);
         this.card = card;
     }
 
     public Transaction processPayment(Transaction transaction, Gateway gateway) {
-
         GatewaysFactory.getGateway(gateway).pay(transaction);
         return transaction;
-
     }
 
     public Gateway getGateway() {
@@ -116,16 +114,8 @@ public class Subscription extends WithId {
         this.card = card;
     }
 
-    public int getDurationDays() {
-        return durationDays;
-    }
-
     public Date getNextChargeDate() {
         return nextChargeDate;
-    }
-
-    public void setNextChargeDate(Date nextChargeDate) {
-        this.nextChargeDate = nextChargeDate;
     }
 
     public SubscriptionStatus getStatus() {
