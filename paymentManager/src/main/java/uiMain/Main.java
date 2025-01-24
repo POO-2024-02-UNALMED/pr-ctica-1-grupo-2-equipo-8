@@ -297,7 +297,7 @@ public class Main {
         );
 
         log(
-            new String [] {"Payment method changed successfully","Error changing payment method"},
+            new String [] {"Plan subscription successfully","Error subscribing to plan"},
             initialTransaction.getStatus() == TransactionStatus.ACCEPTED
         );
 
