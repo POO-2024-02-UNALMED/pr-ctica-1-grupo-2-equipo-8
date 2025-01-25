@@ -1,5 +1,6 @@
 package uiMain;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -15,6 +16,7 @@ import gestorAplicacion.gateways.GatewaysFactory;
 import gestorAplicacion.gateways.IGateway;
 import gestorAplicacion.gateways.ProjectGateway;
 import gestorAplicacion.plan.Plan;
+import gestorAplicacion.plan.PlanStatus;
 import gestorAplicacion.plan.Subscription;
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
@@ -171,8 +173,7 @@ public class Main {
         }
     }
 
-    static Subscription showUserSubscriptions(User user, String message, boolean informative) {
-        List<Subscription> subscriptions = user.getSubscriptions();
+    static Subscription showUserSubscriptions(List<Subscription> subscriptions, String message, boolean informative) {
         String[] subsHeaders = {"ID", "Plan", "Status", "Next charge date", "Payment method"};
         List<String[]> subsInfo = new ArrayList<>();
         for (int i = 0; i < subscriptions.size(); i++) {
@@ -195,14 +196,15 @@ public class Main {
     }
 
     static Plan showPlans(List<Plan> plans, String message, boolean informative) {
-        String[] plansHeaders = {"ID", "Name", "Description", "Price"};
+        String[] plansHeaders = {"ID", "Name", "Description", "Price", "Status"};
         List<String[]> plansInfo =  new ArrayList<>();
         for (int i = 0; i < plans.size(); i++) {
             plansInfo.add(new String[] {
                 String.valueOf(i + 1),
                 plans.get(i).getName(),
                 plans.get(i).getDescription(),
-                String.valueOf(plans.get(i).getPrice())
+                String.valueOf(plans.get(i).getPrice()),
+                plans.get(i).getStatus().toString()
             });
         }
         if (informative) {
@@ -279,7 +281,7 @@ public class Main {
             }
         }
         if(nonSubscribePlans.isEmpty()) {
-            showUserSubscriptions(user, "You are already subscribed to all available plans", true);
+            showUserSubscriptions(user.getSubscriptions(), "You are already subscribed to all available plans", true);
             return;
         }
 
@@ -324,7 +326,7 @@ public class Main {
     }
 
     static void changeSubscriptionPaymentMethod(User user) {
-        Subscription selectedSubscription = showUserSubscriptions(user, "Select the subscription you want to change the payment method", false);
+        Subscription selectedSubscription = showUserSubscriptions(user.getSubscriptions(), "Select the subscription you want to change the payment method", false);
         Card newCard = addCreditCard();
         boolean paymentMethodChanged = user.changeSubscriptionPaymentMethod(selectedSubscription, newCard);
         log(new String [] {"Payment method changed successfully", "Error changing payment method"}, paymentMethodChanged);
@@ -332,6 +334,15 @@ public class Main {
 
     static void runFeature(User user, Admin admin) {
         logLn("--------------------------------------------------------");
+        List<Subscription> userInactiveSubscriptions = user.getInactiveSubscriptions();
+        if (!userInactiveSubscriptions.isEmpty()) {
+            showUserSubscriptions(
+                userInactiveSubscriptions,
+                "The Following Subscriptions will be suspended after its next charge date ",
+                true
+            );
+            logLn("");
+        }
         int feature = askForSelection("Select function", FEATURES);
         switch (feature) {
             case 0:
@@ -350,38 +361,31 @@ public class Main {
                 break;
 
             case 3: // Delete plan
-
-                List<Subscription> subscriptions = user.getSubscriptions();
-                String [] subscriptionNamesToDelete = new String[subscriptions.size()];
-                for (int i = 0; i < subscriptions.size(); i++) {
-                    subscriptionNamesToDelete[i] = subscriptions.get(i).getUser().getEmail() +
-                        "-" +
-                        subscriptions.get(i).getPlan().getName();
-                }
-
-                String[] headers1Fun4 = {"ID", "Name", "Description", "Price"};
-                List<String[]> rows1Fun4 = new ArrayList<>();
-
-                int count2 = 0;
-                for (int i = 0; i < subscriptions.size(); i++) {
-                    if (!java.util.Arrays.asList(subscriptionNamesToDelete).contains(subscriptions.get(i).getPlan().getName())) {
-                        count2++;
-                        rows1Fun4.add(new String[] {
-                            String.valueOf(count2),
-                            subscriptions.get(i).getPlan().getName(),
-                            subscriptions.get(i).getPlan().getDescription(),
-                            String.valueOf(subscriptions.get(i).getPlan().getPrice())
-                        });
+                List<WithId> withIdPlansList = Repository.loadAllObjectInDirectory("Plan");
+                List<Plan> systemPlans = new ArrayList<>();
+                for (WithId withId : withIdPlansList) {
+                    if (withId instanceof Plan plan && plan.getStatus() == PlanStatus.ACTIVE) {
+                        systemPlans.add(plan);
                     }
                 }
-                int selectedPlanIndex4 = askForSelectionOnTableFormat("Select the plan you want to delete", headers1Fun4, rows1Fun4);
-
-                subscriptions.remove(selectedPlanIndex4);
+                Plan planToDelete = showPlans(systemPlans, "Select the plan you want to delete", false);
+                List<Subscription> subscriptions = Plan.inactivateSubscriptions(planToDelete);
+                String[] headers = {"ID", "Status"};
+                List<String[]> rows = new ArrayList<>();
+                for (Subscription subscription : subscriptions) {
+                    rows.add(new String[] {
+                        subscription.getId(),
+                        subscription.getStatus().toString(),
+                    });
+                }
+                showInformation("Subscriptions inactivated", headers, rows);
+                planToDelete.setStatus(PlanStatus.INACTIVE);
+                admin.deletePlan(planToDelete);
                 runFeature(user, admin);
                 break;
 
             case 4: // Pay subscription
-                Subscription subsToPay = showUserSubscriptions(user, "Select the subscription you want to pay", false);
+                Subscription subsToPay = showUserSubscriptions(user.getSubscriptions(), "Select the subscription you want to pay", false);
                 Transaction transaction = processTransaction(
                     user,
                     subsToPay.getPaymentMethod(),
@@ -405,6 +409,9 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        // set time zone
+        System.setProperty("user.timezone", "UTC-5");
+        // create temp directory
         Repository.createTempDirectory();
 
         Plan advanced = new Plan("Advanced","Books, Music, Videos",100);
@@ -451,8 +458,13 @@ public class Main {
         );
         user.addCreditCard(card);
         user.addCreditCard(card2);
+
         user.addSubscription(basic);
-        user.addSubscription(essential);
+        user.addSubscription(essential, card2);
+
+        Subscription futureSubscription = new Subscription(user, essential, LocalDate.now().plusDays(1));
+
+        Repository.save(futureSubscription, "Subscription" + java.io.File.separator + essential.getName());
         Repository.save(user);
 
         // LOGIN

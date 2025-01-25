@@ -1,6 +1,7 @@
 package gestorAplicacion.customers;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import gestorAplicacion.WithId;
 import gestorAplicacion.gateways.Gateway;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
+import gestorAplicacion.plan.SubscriptionStatus;
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
 import gestorAplicacion.transactions.TransactionStatus;
@@ -80,10 +82,6 @@ public class User extends Customer {
     }
 
     public List<Subscription> getSubscriptions() {
-        if (subscriptions != null) {
-            return subscriptions;
-        }
-
         List<Plan> plans = Plan.getAll();
         ArrayList<Subscription> userSubscriptions = new ArrayList<>();
         for (Plan plan : plans) {
@@ -95,12 +93,36 @@ public class User extends Customer {
             if (subscription != null) {
                 subscription.setUser(this);
                 subscription.setPlan(plan);
+                if(subscription.getNextChargeDate().isBefore(LocalDate.now())) {
+                    subscription.setStatus(SubscriptionStatus.CANCELLED);
+                    subscription.setSuspensionDate(subscription.getNextChargeDate());
+                    subscription.setNextChargeDate(LocalDate.MIN);
+                    Repository.update(subscription, "Subscription" + File.separator + plan.getName());
+                }
                 userSubscriptions.add(subscription);
             }
         }
         this.subscriptions = userSubscriptions;
 
         return userSubscriptions;
+    }
+
+    public List<Subscription> getInactiveSubscriptions() {
+        List<Plan> inactivePlans = Plan.getInactivePlans();
+        List<Subscription> inactiveSubscriptions = new ArrayList<>();
+        for (Plan plan : inactivePlans) {
+            String id = WithId.createId(this.email, plan.getName());
+            Subscription subscription = (Subscription) Repository.load(
+                "Subscription" + File.separator + plan.getName(),
+                id
+            );
+            if (subscription != null) {
+                subscription.setUser(this);
+                subscription.setPlan(plan);
+                inactiveSubscriptions.add(subscription);
+            }
+        }
+        return inactiveSubscriptions;
     }
 
     public boolean hasCreditCard() {

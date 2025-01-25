@@ -1,6 +1,6 @@
 package gestorAplicacion.plan;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.User;
@@ -14,23 +14,24 @@ public class Subscription extends WithId {
     private static final long serialVersionUID = 2L;
     private transient User user;
     private transient Plan plan;
-    private Date nextChargeDate;
-    private Date startDate;
+    private LocalDate nextChargeDate;
+    private LocalDate startDate;
     private SubscriptionStatus status;
     private int numberOfCollectionAttempts = 0;
     private Card card;
+    private LocalDate suspensionDate;
 
     public Subscription(User user, Plan plan) {
         super(createId(user.getEmail(), plan.getName()));
         this.user = user;
         this.plan = plan;
-        this.startDate = new Date();
+        this.startDate = LocalDate.now();
         this.status = SubscriptionStatus.INACTIVE;
     }
 
-    public Subscription(User user, Plan plan, Date startDate) {
+    public Subscription(User user, Plan plan, LocalDate startDate) {
         this(user, plan);
-        if (startDate.after(new Date())) {
+        if (startDate.isAfter(LocalDate.now())) {
             this.startDate = startDate;
             this.nextChargeDate = startDate;
         }
@@ -41,7 +42,7 @@ public class Subscription extends WithId {
         this.card = card;
     }
 
-    public Subscription(User user, Plan plan, Date startDate, Card card) {
+    public Subscription(User user, Plan plan, LocalDate startDate, Card card) {
         this(user, plan, startDate);
         this.card = card;
     }
@@ -56,7 +57,7 @@ public class Subscription extends WithId {
     }
 
     public Transaction processPayment(Gateway gateway) {
-        if (this.nextChargeDate != null && this.nextChargeDate.after(new Date())) {
+        if (this.nextChargeDate != null && this.nextChargeDate.isAfter(LocalDate.now())) {
             return new Transaction(
                 this.plan.getName(),
                 this.user, this.plan.getPrice(),
@@ -72,11 +73,11 @@ public class Subscription extends WithId {
         );
         GatewaysFactory.getGateway(gateway).pay(transaction);
         if (transaction.getStatus() == TransactionStatus.ACCEPTED) {
-            this.nextChargeDate = new Date(System.currentTimeMillis() + 30 * 24 * 60 * 60 * 1000);
+            this.nextChargeDate = LocalDate.now().plusMonths(1);
             this.status = SubscriptionStatus.ACTIVE;
         } else if (this.numberOfCollectionAttempts < 3) {
             // update next charge date to tomorrow
-            this.nextChargeDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
+            this.nextChargeDate = LocalDate.now().plusDays(1);
             this.status = SubscriptionStatus.PENDING;
             this.numberOfCollectionAttempts++;
         } else {
@@ -114,7 +115,7 @@ public class Subscription extends WithId {
         this.card = card;
     }
 
-    public Date getNextChargeDate() {
+    public LocalDate getNextChargeDate() {
         return nextChargeDate;
     }
 
@@ -126,7 +127,19 @@ public class Subscription extends WithId {
         this.status = status;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
+    }
+
+    public void setNextChargeDate(LocalDate nextChargeDate) {
+        this.nextChargeDate = nextChargeDate;
+    }
+
+    public void setSuspensionDate(LocalDate date) {
+        this.suspensionDate = date;
+    }
+
+    public LocalDate getSuspensionDate() {
+        return this.suspensionDate;
     }
 }

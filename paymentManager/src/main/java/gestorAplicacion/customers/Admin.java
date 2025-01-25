@@ -1,5 +1,7 @@
 package gestorAplicacion.customers;
 
+import java.io.File;
+
 import baseDatos.Repository;
 import gestorAplicacion.gateways.Credential;
 import gestorAplicacion.gateways.Gateway;
@@ -26,5 +28,9 @@ public class Admin extends Customer {
         Credential credential = new Credential(publicKey, privateKey, gateway);
         Repository.save(credential);
         return credential;
+    }
+
+    public void deletePlan(Plan plan) {
+        Repository.update(plan);
     }
 }

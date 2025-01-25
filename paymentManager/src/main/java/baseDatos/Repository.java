@@ -21,10 +21,7 @@ public class Repository {
 
     private static final Logger LOGGER = Logger.getLogger(Repository.class.getName());
     private static final String ROOT_DIRECTORY = System.getProperty("user.dir");
-    private static final String OS = System.getProperty("os.name");
-    private static final String TEMP_DIRECTORY_RELATIVE_PATH = OS.contains("Mac")
-        ? "/PaymentManager/src/main/java/baseDatos/temp/"
-        : "/PaymentManager/src/main/java/baseDatos/temp/";
+    private static final String TEMP_DIRECTORY_RELATIVE_PATH = System.getProperty("temp.directory.relative.path", "/PaymentManager/src/main/java/baseDatos/temp/");
     private static final String TEMP_DIRECTORY_ABS_PATH_STRING = ROOT_DIRECTORY + (new File(TEMP_DIRECTORY_RELATIVE_PATH)).getPath();
 
     public static void createDirectory(File directory) {
@@ -110,12 +107,11 @@ public class Repository {
         return false;
     }
 
-    public static boolean update (WithId object) {
-        String fileName = getObjectFilePath(object, null);
-        File file = new File(TEMP_DIRECTORY_ABS_PATH_STRING + fileName);
+    private static boolean updateObject(WithId object, String objectPath) {
+        File file = new File(objectPath);
         if (file.exists()) {
             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-                    new FileOutputStream(TEMP_DIRECTORY_ABS_PATH_STRING + fileName))) {
+                    new FileOutputStream(objectPath))) {
                 objectOutputStream.writeObject(object);
                 return true;
             } catch (IOException e) {
@@ -123,7 +119,19 @@ public class Repository {
                 return false;
             }
         }
+        System.out.println("File not found");
+        System.err.println(file.getAbsolutePath());
         return false;
+    }
+
+    public static boolean update (WithId object) {
+        String fileName = getObjectFilePath(object, null);
+        return updateObject(object, fileName);
+    }
+
+    public static boolean update (WithId object, String path) {
+        String fileName = getObjectFilePath(object, path);
+        return updateObject(object, fileName);
     }
 
     public static List<WithId> loadAllObjectInDirectory(String path) {
