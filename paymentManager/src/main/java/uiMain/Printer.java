@@ -5,6 +5,7 @@ import java.util.List;
 
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
+import gestorAplicacion.transactions.Card;
 
 public abstract class Printer {
     private Printer() {
@@ -51,5 +52,24 @@ public abstract class Printer {
 
         int selectedPlanIndex = Command.askForSelectionOnTableFormat(message, plansHeaders, plansInfo);
         return plans.get(selectedPlanIndex);
+    }
+
+    static Card showCardsInfo(List<Card> cards, String message, boolean informative) {
+        String[] headers = {"ID", "Last four digits", "Expiration date", "Franchise"};
+        List<String[]> rows = new ArrayList<>();
+        for (Card card : cards) {
+            rows.add(new String[] {
+                String.valueOf(cards.indexOf(card) + 1),
+                card.getLastFour(),
+                card.getExpirationDate(),
+                card.getFranchise().toString()
+            });
+        }
+        if (informative) {
+            Table.showInformation(message, headers, rows);
+            return null;
+        }
+        int selectedCardIndex = Command.askForSelectionOnTableFormat(message, headers, rows);
+        return cards.get(selectedCardIndex);
     }
 }

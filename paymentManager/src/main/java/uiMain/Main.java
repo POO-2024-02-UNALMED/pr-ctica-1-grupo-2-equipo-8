@@ -2,11 +2,8 @@ package uiMain;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import baseDatos.Loader;
-import baseDatos.Repository;
-import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
 import gestorAplicacion.customers.Customer;
 import gestorAplicacion.customers.User;
@@ -33,21 +30,6 @@ public class Main {
     };
 
     static final String INVALID_OPTION_MESSAGE = "Invalid option, please select a valid option";
-    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
-
-    static Card addCreditCard() {
-        String cardNumber = Command.askString("Enter the your credit card number");
-        String cardHolder = Command.askString("Enter the card holder name");
-        String expirationDate = Command.askString("Enter the due date of your credit card (MM/YY)");
-        String cvv = Command.askString("Enter the CVV of your credit card");
-        if (!ProjectGateway.validate(cardNumber, cardHolder, expirationDate, cvv)) {
-            Command.logLn("Invalid credit card information");
-            return addCreditCard();
-        }
-        ProjectGateway projectGateway = new ProjectGateway();
-        return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv);
-    }
-
 
     static Customer login () {
         String email = Command.askString("Enter your email: ");
@@ -60,16 +42,17 @@ public class Main {
         return customer;
     }
 
-    static void log(String[] messages, boolean success) {
-        if (success) {
-            if (LOGGER.isLoggable(java.util.logging.Level.INFO)) {
-                LOGGER.info(String.format("SUCCESS: %s%n", messages[0]));
-            }
-        } else {
-            if (LOGGER.isLoggable(java.util.logging.Level.WARNING)) {
-                LOGGER.warning(String.format("ERROR: %s%n", messages[1]));
-            }
+    static Card addCreditCard() {
+        String cardNumber = Command.askString("Enter the your credit card number");
+        String cardHolder = Command.askString("Enter the card holder name");
+        String expirationDate = Command.askString("Enter the due date of your credit card (MM/YY)");
+        String cvv = Command.askString("Enter the CVV of your credit card");
+        if (!ProjectGateway.validate(cardNumber, cardHolder, expirationDate, cvv)) {
+            Command.logLn("Invalid credit card information");
+            return addCreditCard();
         }
+        ProjectGateway projectGateway = new ProjectGateway();
+        return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv);
     }
 
     static Transaction processTransaction(User user, Card card, double price, String description) {
@@ -102,25 +85,6 @@ public class Main {
         return transaction;
     }
 
-    static Card showCardsInfo(List<Card> cards, String message, boolean informative) {
-        String[] headers = {"ID", "Last four digits", "Expiration date", "Franchise"};
-        List<String[]> rows = new ArrayList<>();
-        for (Card card : cards) {
-            rows.add(new String[] {
-                String.valueOf(cards.indexOf(card) + 1),
-                card.getLastFour(),
-                card.getExpirationDate(),
-                card.getFranchise().toString()
-            });
-        }
-        if (informative) {
-            Table.showInformation(message, headers, rows);
-            return null;
-        }
-        int selectedCardIndex = Command.askForSelectionOnTableFormat(message, headers, rows);
-        return cards.get(selectedCardIndex);
-    }
-
     static void addSubscription(User user) {
         List<Plan> plans = Plan.getAll();
         List<Plan> userPlans = user.getUserSubscribedPlans();
@@ -148,13 +112,13 @@ public class Main {
             user.addCreditCard(addCreditCard());
         }
 
-        Card selectedCard = showCardsInfo(creditCards, "Select the credit card you want to use", false);
+        Card selectedCard = Printer.showCardsInfo(creditCards, "Select the credit card you want to use", false);
         Transaction initialTransaction = user.addSubscription(
             selectedPlan,
             selectedCard
         );
 
-        log(
+        Command.log(
             new String [] {"Plan subscription successfully","Error subscribing to plan"},
             initialTransaction.getStatus() == TransactionStatus.ACCEPTED
         );
@@ -177,15 +141,15 @@ public class Main {
             return;
         }
         boolean creditCardAdded = user.addCreditCard(cardToAdd);
-        log(new String [] {"Credit card added successfully", "Invalid credit card"}, creditCardAdded);
-        showCardsInfo(user.getCreditCards(), "", true);
+        Command.log(new String [] {"Credit card added successfully", "Invalid credit card"}, creditCardAdded);
+        Printer.showCardsInfo(user.getCreditCards(), "", true);
     }
 
     static void changeSubscriptionPaymentMethod(User user) {
         Subscription selectedSubscription = Printer.showUserSubscriptions(user.getSubscriptions(), "Select the subscription you want to change the payment method", false);
         Card newCard = addCreditCard();
         boolean paymentMethodChanged = user.changeSubscriptionPaymentMethod(selectedSubscription, newCard);
-        log(new String [] {"Payment method changed successfully", "Error changing payment method"}, paymentMethodChanged);
+        Command.log(new String [] {"Payment method changed successfully", "Error changing payment method"}, paymentMethodChanged);
     }
 
     static void runFeature(User user, Admin admin) {
@@ -217,13 +181,7 @@ public class Main {
                 break;
 
             case 3: // Delete plan
-                List<WithId> withIdPlansList = Repository.loadAllObjectInDirectory("Plan");
-                List<Plan> systemPlans = new ArrayList<>();
-                for (WithId withId : withIdPlansList) {
-                    if (withId instanceof Plan plan && plan.getStatus() == PlanStatus.ACTIVE) {
-                        systemPlans.add(plan);
-                    }
-                }
+                List<Plan> systemPlans = Plan.getAll();
                 Plan planToDelete = Printer.showPlans(systemPlans, "Select the plan you want to delete", false);
                 List<Subscription> subscriptions = Plan.inactivateSubscriptions(planToDelete);
                 String[] headers = {"ID", "Status"};
@@ -250,7 +208,7 @@ public class Main {
                 );
                 subsToPay.processPayment(transaction, subsToPay.getGateway());
                 boolean charged = transaction.getStatus() == TransactionStatus.ACCEPTED;
-                log(new String [] {"Subscription charged successfully", "Error charging subscription"}, charged);
+                Command.log(new String [] {"Subscription charged successfully", "Error charging subscription"}, charged);
                 runFeature(user, admin);
                 break;
 
