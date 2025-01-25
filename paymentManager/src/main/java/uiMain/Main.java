@@ -24,7 +24,7 @@ public class Main {
         "Add subscription",
         "Add credit card",
         "Change subscription paying method",
-        "Remove plan",
+        "Inactivate plan",
         "Pay subscription",
         "Exit"
     };
@@ -100,7 +100,8 @@ public class Main {
         }
 
         if(nonSubscribePlans.isEmpty()) {
-            Printer.showUserSubscriptions(user.getSubscriptions(), "You are already subscribed to all available plans", true);
+            Printer.showUserSubscriptions(
+                user.getSubscriptions(), "You are already subscribed to all available plans", true);
             return;
         }
 
@@ -145,70 +146,81 @@ public class Main {
     }
 
     static void changeSubscriptionPaymentMethod(User user) {
-        Subscription selectedSubscription = Printer.showUserSubscriptions(user.getSubscriptions(), "Select the subscription you want to change the payment method", false);
+        Subscription selectedSubscription = Printer.showUserSubscriptions(
+            user.getSubscriptions(),
+            "Select the subscription you want to change the payment method",
+            false
+        );
         Card newCard = addCreditCard();
-        boolean paymentMethodChanged = user.changeSubscriptionPaymentMethod(selectedSubscription, newCard);
+        boolean paymentMethodChanged = selectedSubscription.upsertPaymentMethod(newCard);
         Command.log(new String [] {"Payment method changed successfully", "Error changing payment method"}, paymentMethodChanged);
     }
 
-    static void runFeature(User user, Admin admin) {
-        Command.logLn("--------------------------------------------------------");
-        List<Subscription> userInactiveSubscriptions = user.getInactiveSubscriptions();
-        if (!userInactiveSubscriptions.isEmpty()) {
-            Printer.showUserSubscriptions(
-                userInactiveSubscriptions,
-                "The Following Subscriptions will be suspended after its next charge date ",
-                true
-            );
-            Command.logLn("");
+    static void inactivatePlan(Admin admin) {
+        List<Plan> systemPlans = Plan.getAll();
+        Plan planToDelete = Printer.showPlans(systemPlans, "Select the plan you want to delete", false);
+        List<Subscription> subscriptions = Plan.inactivateSubscriptions(planToDelete);
+        String[] headers = {"ID", "Status"};
+        List<String[]> rows = new ArrayList<>();
+        for (Subscription subscription : subscriptions) {
+            rows.add(new String[] {
+                subscription.getId(),
+                subscription.getStatus().toString(),
+            });
         }
+        Table.showInformation("Subscriptions inactivated", headers, rows);
+        planToDelete.setStatus(PlanStatus.INACTIVE);
+        admin.inactivate(planToDelete);
+    }
+
+    static void paySubscription(User user) {
+        Subscription subsToPay = Printer.showUserSubscriptions(
+            user.getSubscriptions(),
+            "Select the subscription you want to pay",
+            false
+        );
+        Transaction transaction = processTransaction(
+            user,
+            subsToPay.getPaymentMethod(),
+            subsToPay.getPlan().getPrice(),
+            subsToPay.getPlan().getName()
+        );
+        subsToPay.processPayment(transaction);
+        boolean charged = transaction.getStatus() == TransactionStatus.ACCEPTED;
+        Command.log(new String [] {"Subscription charged successfully", "Error charging subscription"}, charged);
+    }
+
+    static void run(User user, Admin admin) {
+        Command.logLn("#".repeat(100));
+        Printer.showInactiveSubscriptionNotification(user);
+        Command.logLn();
+        Printer.showSubscriptionsNearToChargeDate(user);
+        Command.logLn();
         int feature = Command.askForSelection("Select function", FEATURES);
         switch (feature) {
             case 0:
                 addSubscription(user);
-                runFeature(user, admin);
+                run(user, admin);
                 break;
 
             case 1:
                 addUserCreditCard(user);
-                runFeature(user, admin);
+                run(user, admin);
                 break;
 
             case 2:
                 changeSubscriptionPaymentMethod(user);
-                runFeature(user, admin);
+                run(user, admin);
                 break;
 
-            case 3: // Delete plan
-                List<Plan> systemPlans = Plan.getAll();
-                Plan planToDelete = Printer.showPlans(systemPlans, "Select the plan you want to delete", false);
-                List<Subscription> subscriptions = Plan.inactivateSubscriptions(planToDelete);
-                String[] headers = {"ID", "Status"};
-                List<String[]> rows = new ArrayList<>();
-                for (Subscription subscription : subscriptions) {
-                    rows.add(new String[] {
-                        subscription.getId(),
-                        subscription.getStatus().toString(),
-                    });
-                }
-                Table.showInformation("Subscriptions inactivated", headers, rows);
-                planToDelete.setStatus(PlanStatus.INACTIVE);
-                admin.deletePlan(planToDelete);
-                runFeature(user, admin);
+            case 3:
+                inactivatePlan(admin);
+                run(user, admin);
                 break;
 
-            case 4: // Pay subscription
-                Subscription subsToPay = Printer.showUserSubscriptions(user.getSubscriptions(), "Select the subscription you want to pay", false);
-                Transaction transaction = processTransaction(
-                    user,
-                    subsToPay.getPaymentMethod(),
-                    subsToPay.getPlan().getPrice(),
-                    subsToPay.getPlan().getName()
-                );
-                subsToPay.processPayment(transaction, subsToPay.getGateway());
-                boolean charged = transaction.getStatus() == TransactionStatus.ACCEPTED;
-                Command.log(new String [] {"Subscription charged successfully", "Error charging subscription"}, charged);
-                runFeature(user, admin);
+            case 4:
+                paySubscription(user);
+                run(user, admin);
                 break;
 
             case 5:
@@ -217,7 +229,7 @@ public class Main {
 
             default:
                 Command.logLn("Invalid selection");
-                runFeature(user, admin);
+                run(user, admin);
         }
     }
 
@@ -232,7 +244,7 @@ public class Main {
             return;
         }
 
-        runFeature(loader.getSystemUser(), loader.getSystemAdmin());
+        run(loader.getSystemUser(), loader.getSystemAdmin());
     }
 }
 

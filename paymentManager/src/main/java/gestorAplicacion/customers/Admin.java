@@ -30,7 +30,7 @@ public class Admin extends Customer {
         return credential;
     }
 
-    public void deletePlan(Plan plan) {
+    public void inactivate(Plan plan) {
         Repository.update(plan);
     }
 }

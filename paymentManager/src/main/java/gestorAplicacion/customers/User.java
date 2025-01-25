@@ -41,7 +41,7 @@ public class User extends Customer {
             1,
             TransactionStatus.PENDING
         );
-        subscription.processPayment(transaction, subscription.getGateway());
+        subscription.processPayment(transaction);
         return transaction.getStatus() == TransactionStatus.ACCEPTED;
     }
 
@@ -59,7 +59,7 @@ public class User extends Customer {
         Subscription subscription = new Subscription(this, plan);
         Transaction initialChargeTransaction = null;
        if (hasCreditCard()) {
-            initialChargeTransaction = subscription.processPayment(this.gateway);
+            initialChargeTransaction = subscription.processPayment();
         }
         saveOnRepositoryAndAddToSubscriptions(subscription);
        return initialChargeTransaction;
@@ -67,7 +67,7 @@ public class User extends Customer {
 
     public Transaction addSubscription(Plan plan, Card card) {
         Subscription subscription = new Subscription(this, plan, card);
-        Transaction initialChargeTransaction = subscription.processPayment(this.gateway);
+        Transaction initialChargeTransaction = subscription.processPayment();
         saveOnRepositoryAndAddToSubscriptions(subscription);
        return initialChargeTransaction;
     }
@@ -130,7 +130,9 @@ public class User extends Customer {
     }
 
     public boolean addCreditCard(Card card) {
-        return this.creditCards.add(card);
+        this.creditCards.add(card);
+        Repository.update(this);
+        return true;
     }
 
     public void removeCreditCard(Card card) {

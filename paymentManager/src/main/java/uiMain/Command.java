@@ -15,6 +15,10 @@ public abstract class Command {
         System.out.println(object);
     }
 
+    static void logLn() {
+        System.out.println("");
+    }
+
     static void log(Object object) {
         System.out.print(object.toString() + " ");
     }

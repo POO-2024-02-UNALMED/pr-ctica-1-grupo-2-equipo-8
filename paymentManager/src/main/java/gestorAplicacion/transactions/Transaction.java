@@ -1,5 +1,6 @@
 package gestorAplicacion.transactions;
 
+import java.time.LocalDate;
 import java.util.Calendar;
 
 import gestorAplicacion.WithId;
@@ -13,6 +14,7 @@ public class Transaction extends WithId {
     private double price;
     private String userEmail;
     private Gateway gateway;
+    private LocalDate date;
 
     private static String getMontAndYear() {
         return Calendar.getInstance().get(Calendar.MONTH) + "-" + Calendar.getInstance().get(Calendar.YEAR);
@@ -24,6 +26,7 @@ public class Transaction extends WithId {
         this.price = price;
         this.userEmail = user.getEmail();
         this.gateway = user.getGateway();
+        this.date = LocalDate.now();
     }
 
     public Transaction(String description, User user, double price, TransactionStatus status) {
@@ -74,5 +77,9 @@ public class Transaction extends WithId {
 
     public Gateway getGateway() {
         return gateway;
+    }
+
+    public LocalDate getDate() {
+        return date;
     }
 }

@@ -1,8 +1,10 @@
 package uiMain;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import gestorAplicacion.customers.User;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.Subscription;
 import gestorAplicacion.transactions.Card;
@@ -71,5 +73,43 @@ public abstract class Printer {
         }
         int selectedCardIndex = Command.askForSelectionOnTableFormat(message, headers, rows);
         return cards.get(selectedCardIndex);
+    }
+
+    static void showInactiveSubscriptionNotification(User user) {
+        List<Subscription> userInactiveSubscriptions = user.getInactiveSubscriptions();
+        List<String[]> subscriptionsToShow = new ArrayList<>();
+        String[] subsHeaders = {"ID", "Plan", "Status", "Next charge date", "Suspension date"};
+
+
+        for (Subscription subscription : userInactiveSubscriptions) {
+            subscriptionsToShow.add(new String[] {
+                subscription.getId(),
+                subscription.getPlan().getName(),
+                subscription.getStatus().toString(),
+                subscription.getNextChargeDate().toString(),
+                subscription.getSuspensionDate().toString()
+            });
+        }
+        if (!userInactiveSubscriptions.isEmpty()) {
+            Command.logLn("The Following Subscriptions will be suspended after its next charge date ");
+            Table.print(subsHeaders, subscriptionsToShow);
+        }
+    }
+
+    static void showSubscriptionsNearToChargeDate(User user) {
+        List<Subscription> userInactiveSubscriptions = user.getSubscriptions();
+        List<Subscription> subscriptionsNearToChargeDate = new ArrayList<>();
+        for (Subscription subscription : userInactiveSubscriptions) {
+            if (subscription.getNextChargeDate().isBefore(LocalDate.now().plusDays(3))) {
+                subscriptionsNearToChargeDate.add(subscription);
+            }
+        }
+        if (!subscriptionsNearToChargeDate.isEmpty()) {
+            showUserSubscriptions(
+                subscriptionsNearToChargeDate,
+                "The following subscriptions are near to their next charge date",
+                true
+            );
+        }
     }
 }

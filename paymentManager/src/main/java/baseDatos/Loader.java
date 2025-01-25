@@ -96,15 +96,14 @@ public class Loader {
         user.addCreditCard(card);
         user.addCreditCard(card2);
 
-        user.addSubscription(basic);
         user.addSubscription(essential, card2);
-        Subscription futureSubscription = new Subscription(user, essential, LocalDate.now().plusDays(1));
+        Subscription futureSubscription = new Subscription(user, basic, LocalDate.now().plusDays(1));
 
-        Repository.save(futureSubscription, "Subscription" + java.io.File.separator + essential.getName());
+        Repository.save(futureSubscription, "Subscription" + java.io.File.separator + basic.getName());
         Repository.save(user);
         this.systemUser = user;
         this.systemAdmin = admin;
-        createRandomUsers();
+        //createRandomUsers();
     }
 
     public static Customer loadCustomer(String email, String password, String type) {

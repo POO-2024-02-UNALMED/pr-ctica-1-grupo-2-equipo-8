@@ -2,6 +2,7 @@ package gestorAplicacion.plan;
 
 import java.time.LocalDate;
 
+import baseDatos.Repository;
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.User;
 import gestorAplicacion.gateways.Gateway;
@@ -27,6 +28,8 @@ public class Subscription extends WithId {
         this.plan = plan;
         this.startDate = LocalDate.now();
         this.status = SubscriptionStatus.INACTIVE;
+        this.nextChargeDate = LocalDate.now();
+        this.suspensionDate = LocalDate.MAX;
     }
 
     public Subscription(User user, Plan plan, LocalDate startDate) {
@@ -47,32 +50,13 @@ public class Subscription extends WithId {
         this.card = card;
     }
 
-    public Transaction processPayment(Transaction transaction, Gateway gateway) {
-        GatewaysFactory.getGateway(gateway).pay(transaction);
-        return transaction;
-    }
-
-    public Gateway getGateway() {
-        return this.user.getGateway();
-    }
-
-    public Transaction processPayment(Gateway gateway) {
-        if (this.nextChargeDate != null && this.nextChargeDate.isAfter(LocalDate.now())) {
-            return new Transaction(
-                this.plan.getName(),
-                this.user, this.plan.getPrice(),
-                TransactionStatus.REJECTED
-            );
+    public Transaction processPayment(Transaction transaction) {
+        GatewaysFactory.getGateway(this.user.getGateway()).pay(transaction);
+        if(transaction.getStatus() == TransactionStatus.ACCEPTED && this.nextChargeDate.isAfter(LocalDate.now().plusDays(1))) {
+            long remainingDays = this.nextChargeDate.toEpochDay() - LocalDate.now().toEpochDay();
+            this.nextChargeDate = LocalDate.now().plusMonths(1).plusDays(remainingDays);
         }
-
-        Transaction transaction = new Transaction(
-            this.plan.getName(),
-            this.user,
-            this.plan.getPrice(),
-            TransactionStatus.PENDING
-        );
-        GatewaysFactory.getGateway(gateway).pay(transaction);
-        if (transaction.getStatus() == TransactionStatus.ACCEPTED) {
+        else if (transaction.getStatus() == TransactionStatus.ACCEPTED) {
             this.nextChargeDate = LocalDate.now().plusMonths(1);
             this.status = SubscriptionStatus.ACTIVE;
         } else if (this.numberOfCollectionAttempts < 3) {
@@ -83,8 +67,38 @@ public class Subscription extends WithId {
         } else {
             this.status = SubscriptionStatus.CANCELLED;
         }
-
+        Repository.update(this, "Subscription" + java.io.File.separator + this.plan.getName());
         return transaction;
+    }
+
+    public Gateway getGateway() {
+        return this.user.getGateway();
+    }
+
+    public Transaction processPayment() {
+        Transaction transaction = new Transaction(
+            this.plan.getName(),
+            this.user,
+            this.plan.getPrice(),
+            TransactionStatus.PENDING,
+            this.getPaymentMethod()
+        );
+
+        return processPayment(transaction);
+    }
+
+    public boolean upsertPaymentMethod(Card card) {
+        this.setPaymentMethod(card);
+        Repository.update(this);
+
+        Transaction transaction = new Transaction(
+            this.plan.getName(),
+            this.user,
+            1,
+            TransactionStatus.PENDING
+        );
+        processPayment(transaction);
+        return transaction.getStatus() == TransactionStatus.ACCEPTED;
     }
 
     public User getUser() {

@@ -38,11 +38,13 @@ public class Table {
         for (String[] row : rows) {
             printRow(row, columnWidths);
         }
+        System.out.println("");
     }
 
     static void showInformation(String message, String[] headers, List<String[]> rows) {
         System.out.println("");
         System.out.println(message);
+        System.out.println("");
         Table.print(headers, rows);
     }
 }
