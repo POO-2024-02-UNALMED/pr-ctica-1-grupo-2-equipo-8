@@ -17,12 +17,8 @@ import gestorAplicacion.WithId;
 public class Repository {
     private static final Logger LOGGER = Logger.getLogger(Repository.class.getName());
     private static final String ROOT_DIRECTORY = System.getProperty("user.dir");
-    private static final String TEMP_DIRECTORY_RELATIVE_PATH = System.getProperty(
-        "temp.directory.relative.path", "/PaymentManager/src/main/java/baseDatos/temp/"
-    );
-    private static final String TEMP_DIRECTORY_ABS_PATH_STRING = ROOT_DIRECTORY + (
-        new File(TEMP_DIRECTORY_RELATIVE_PATH)
-    ).getPath();
+    private static final String TEMP_DIRECTORY_RELATIVE_PATH = System.getProperty("temp.directory.relative.path", "/PaymentManager/src/main/java/baseDatos/temp/");
+    private static final String TEMP_DIRECTORY_ABS_PATH_STRING = ROOT_DIRECTORY + (new File(TEMP_DIRECTORY_RELATIVE_PATH)).getPath();
 
     private Repository() {
         // Private constructor to hide the implicit public one
@@ -70,7 +66,9 @@ public class Repository {
     }
 
     public static boolean save(WithId object) {
-        return save(object);
+        String objectPath = getObjectFilePath(object, null);
+        File file = new File(objectPath);
+        return saveObject(object, file);
     }
 
     public static boolean save(WithId object, String path) {
