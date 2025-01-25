@@ -88,14 +88,8 @@ public class Main {
         return selection;
     }
 
-    static void showInformation(String message, String[] headers, List<String[]> rows) {
-        logLn("");
-        logLn(message);
-        printTable(headers, rows);
-    }
-
     static int askForSelectionOnTableFormat(String message, String[] headers, List<String[]> rows) {
-        showInformation(message, headers, rows);
+        Table.showInformation(message, headers, rows);
         int selection = Integer.parseInt(System.console().readLine()) - 1;
         if (selection < 0 || selection >= rows.size()) {
             logLn(INVALID_OPTION_MESSAGE);
@@ -110,42 +104,6 @@ public class Main {
         return new String(System.console().readPassword());
     }
 
-    private static void printTable(String[] headers, List<String[]> rows) {
-        // Determine column widths
-        int[] columnWidths = new int[headers.length];
-        for (int i = 0; i < headers.length; i++) {
-            columnWidths[i] = headers[i].length();
-        }
-        for (String[] row : rows) {
-            for (int i = 0; i < row.length; i++) {
-                columnWidths[i] = Math.max(columnWidths[i], row[i].length());
-            }
-        }
-
-        // Print header
-        printRow(headers, columnWidths);
-        printSeparator(columnWidths);
-
-        // Print rows
-        for (String[] row : rows) {
-            printRow(row, columnWidths);
-        }
-    }
-
-    private static void printRow(String[] row, int[] columnWidths) {
-        for (int i = 0; i < row.length; i++) {
-            System.out.printf("| %-"+columnWidths[i]+"s ", row[i]);
-        }
-        System.out.println("|");
-    }
-
-    private static void printSeparator(int[] columnWidths) {
-        for (int width : columnWidths) {
-            System.out.print("+");
-            System.out.print("-".repeat(width + 2));
-        }
-        System.out.println("+");
-    }
 
     static Customer login () {
         String email = askString("Enter your email: ");
@@ -185,7 +143,7 @@ public class Main {
             });
         }
         if (informative) {
-            showInformation(message, subsHeaders, subsInfo);
+            Table.showInformation(message, subsHeaders, subsInfo);
             return null;
         }
         int selectedSubscription =  askForSelectionOnTableFormat(message, subsHeaders, subsInfo);
@@ -205,7 +163,7 @@ public class Main {
             });
         }
         if (informative) {
-            showInformation(message, plansHeaders, plansInfo);
+            Table.showInformation(message, plansHeaders, plansInfo);
             return null;
         }
 
@@ -232,7 +190,7 @@ public class Main {
             "-" + transaction.getPaymentMethod().getFranchise().toString() +
             "-" + transaction.getPaymentMethod().getExpirationDate()
         });
-        printTable(headers, rows);
+        Table.print(headers, rows);
         int accept = askForSelection("do you agree?", new String [] {"Yes", "No"});
         if (accept != 0) {
             transaction.setStatus(TransactionStatus.REJECTED);
@@ -255,7 +213,7 @@ public class Main {
             });
         }
         if (informative) {
-            showInformation(message, headers, rows);
+            Table.showInformation(message, headers, rows);
             return null;
         }
         int selectedCardIndex = askForSelectionOnTableFormat(message, headers, rows);
@@ -307,7 +265,7 @@ public class Main {
             initialTransaction.getStatus().toString(),
             initialTransaction.getStatus() == TransactionStatus.ACCEPTED ? "ACTIVE" : "PENDING",
         });
-        printTable(headers3Fun1, rows3Fun1);
+        Table.print(headers3Fun1, rows3Fun1);
     }
 
     static void addUserCreditCard(User user) {
@@ -375,7 +333,7 @@ public class Main {
                         subscription.getStatus().toString(),
                     });
                 }
-                showInformation("Subscriptions inactivated", headers, rows);
+                Table.showInformation("Subscriptions inactivated", headers, rows);
                 planToDelete.setStatus(PlanStatus.INACTIVE);
                 admin.deletePlan(planToDelete);
                 runFeature(user, admin);
