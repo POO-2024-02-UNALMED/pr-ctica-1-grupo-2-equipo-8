@@ -120,7 +120,7 @@ public class Main {
         );
 
         Command.log(
-            new String [] {"Plan subscription successfully","Error subscribing to plan"},
+            new String [] {"Subscription added successfully","Error subscribing to plan"},
             initialTransaction.getStatus() == TransactionStatus.ACCEPTED
         );
 
@@ -190,6 +190,10 @@ public class Main {
             subsToPay.getPlan().getPrice(),
             subsToPay.getPlan().getName()
         );
+        if (transaction.getStatus() == TransactionStatus.REJECTED) {
+            Command.logLn("Error charging subscription, you have declined the transaction");
+            return;
+        }
         subsToPay.processPayment(transaction);
         boolean charged = transaction.getStatus() == TransactionStatus.ACCEPTED;
         Command.log(new String [] {"Subscription charged successfully", "Error charging subscription"}, charged);
