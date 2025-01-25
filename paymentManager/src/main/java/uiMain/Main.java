@@ -75,12 +75,12 @@ public class Main {
         String cardHolder = Command.askString("Enter the card holder name");
         String expirationDate = Command.askString("Enter the due date of your credit card (MM/YY)");
         String cvv = Command.askString("Enter the CVV of your credit card");
+        ProjectGateway projectGateway = (ProjectGateway) GatewaysFactory.getGateway(Gateway.PROJECT_GATEWAY);
         Command.logLn();
-        if (!ProjectGateway.validate(cardNumber, cardHolder, expirationDate, cvv)) {
+        if (!projectGateway.validate(cardNumber, cardHolder, expirationDate, cvv)) {
             Command.logLn("Invalid credit card information");
             return addCreditCard(user);
         }
-        ProjectGateway projectGateway = (ProjectGateway) GatewaysFactory.getGateway(Gateway.PROJECT_GATEWAY);
         return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv, user);
     }
 
