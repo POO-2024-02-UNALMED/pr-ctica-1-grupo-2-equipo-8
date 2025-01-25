@@ -1,19 +1,17 @@
 package uiMain;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import baseDatos.Loader;
 import baseDatos.Repository;
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
 import gestorAplicacion.customers.Customer;
-import gestorAplicacion.customers.DocumentType;
 import gestorAplicacion.customers.User;
 import gestorAplicacion.gateways.Gateway;
 import gestorAplicacion.gateways.GatewaysFactory;
-import gestorAplicacion.gateways.IGateway;
 import gestorAplicacion.gateways.ProjectGateway;
 import gestorAplicacion.plan.Plan;
 import gestorAplicacion.plan.PlanStatus;
@@ -152,8 +150,7 @@ public class Main {
     static Customer login () {
         String email = askString("Enter your email: ");
         String password = askForPassword("Enter your password: ");
-        String id = WithId.createId(email, password);
-        Customer customer = (Customer) Repository.load("User", id);
+        Customer customer = Loader.loadCustomer(email, password, "User");
         if (customer == null) {
             logLn("Invalid credentials");
             return login();
@@ -409,63 +406,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        // set time zone
-        System.setProperty("user.timezone", "UTC-5");
-        // create temp directory
-        Repository.createTempDirectory();
-
-        Plan advanced = new Plan("Advanced","Books, Music, Videos",100);
-        Plan smart = new Plan("Smart","Books, Music",80);
-        Plan basic = new Plan("Basic","Videos",50);
-        Plan essential = new Plan("Essential","Music",50);
-        Repository.save(advanced);
-        Repository.save(smart);
-        Repository.save(basic);
-        Repository.save(essential);
-
-        Admin admin = new Admin(
-            "jdoe",
-            "PASS",
-            DocumentType.CC,
-            "1234567890"
-        );
-
-        User user = new User(
-            admin.getEmail(),
-            admin.getPassword(),
-            DocumentType.CC,
-            admin.getDocumentNumber(),
-            Gateway.PROJECT_GATEWAY
-        );
-
-        Repository.save(admin);
-
-        admin.configureGateway(Gateway.PROJECT_GATEWAY, "publicKey", "privateKey");
-        GatewaysFactory.initializeGateway(Gateway.PROJECT_GATEWAY);
-        IGateway projectGateway = GatewaysFactory.getGateway(Gateway.PROJECT_GATEWAY);
-
-        Card card = projectGateway.addCreditCard(
-            "5434567890111213",
-            user.getEmail(),
-            "02/35",
-            "123"
-        );
-        Card card2 = projectGateway.addCreditCard(
-            "454567890114312",
-            user.getEmail(),
-            "10/30",
-            "132"
-        );
-        user.addCreditCard(card);
-        user.addCreditCard(card2);
-
-        user.addSubscription(basic);
-        user.addSubscription(essential, card2);
-
-        Subscription futureSubscription = new Subscription(user, essential, LocalDate.now().plusDays(1));
-
-        Repository.save(futureSubscription, "Subscription" + java.io.File.separator + essential.getName());
-        Repository.save(user);
+        Loader loader = new Loader("JDoe", "PASS");
+        loader.loadData();
 
         // LOGIN
         Customer customer = login();
@@ -474,7 +416,7 @@ public class Main {
             return;
         }
 
-        runFeature((User) customer, admin);
+        runFeature(loader.getSystemUser(), loader.getSystemAdmin());
     }
 }
 
