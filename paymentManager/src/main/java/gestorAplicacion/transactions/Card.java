@@ -21,7 +21,7 @@ public class Card extends WithId {
         Gateway gateway,
         User cardOwner
     ) {
-        super(WithId.createId(dueDate, lastFour));
+        super(createId(dueDate, lastFour));
         this.dueDate = dueDate;
         this.lastFour = lastFour;
         this.franchise = franchise;

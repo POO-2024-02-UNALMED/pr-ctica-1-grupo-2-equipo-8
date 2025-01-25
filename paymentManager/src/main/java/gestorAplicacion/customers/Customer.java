@@ -21,26 +21,8 @@ public class Customer extends WithId {
         this.documentNumber = documentNumber;
     }
 
-    public boolean Validate(){
-        String emailPattern = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-        if(!email.matches(emailPattern)){
-            return false;
-        }
-        else if(password.length() < 8){
-            return false;
-        }
-        else if(documentNumber.length() < 6){
-            return false;
-        }
-        return true;
-    }
-
     public String getEmail() {
         return email;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
     public DocumentType getDocumentType() {

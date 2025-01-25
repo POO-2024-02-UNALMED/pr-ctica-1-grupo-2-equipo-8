@@ -47,7 +47,7 @@ public class Loader {
         );
         User user = new User(
             admin.getEmail(),
-            admin.getPassword(),
+            this.password,
             DocumentType.CC,
             admin.getDocumentNumber(),
             Gateway.PROJECT_GATEWAY

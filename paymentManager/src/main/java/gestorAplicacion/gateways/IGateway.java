@@ -10,5 +10,3 @@ public interface IGateway {
     boolean authenticated();
     public boolean deleteCard(Card card);
 }
-
-

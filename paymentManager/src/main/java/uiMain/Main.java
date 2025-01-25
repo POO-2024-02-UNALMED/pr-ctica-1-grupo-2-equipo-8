@@ -237,7 +237,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Loader loader = new Loader("JDoe", "PASS", true);
+        Loader loader = new Loader("JDoe", "PASS", false);
         loader.loadData();
 
         // LOGIN
