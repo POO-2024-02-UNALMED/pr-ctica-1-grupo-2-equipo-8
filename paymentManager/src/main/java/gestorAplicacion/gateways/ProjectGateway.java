@@ -17,9 +17,9 @@ public class ProjectGateway extends Authenticate implements IGateway {
 
     public static boolean validate(String cardNumber, String cardHolder, String expirationDate, String cvv) {
         return cardNumber.length() > 4
-                && !cardHolder.isEmpty()
-                && expirationDate.length() == 5
-                && cvv.length() == 3;
+                && cardHolder.length() > 3
+                && expirationDate.matches("\\d{2}/\\d{2}")
+                && cvv.length() > 2 && cvv.length() < 5;
     }
 
     public boolean authenticated() {

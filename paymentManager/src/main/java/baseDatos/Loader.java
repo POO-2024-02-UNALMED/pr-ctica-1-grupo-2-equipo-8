@@ -1,6 +1,7 @@
 package baseDatos;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import gestorAplicacion.WithId;
 import gestorAplicacion.customers.Admin;
@@ -19,10 +20,34 @@ public class Loader {
     private String password;
     private User systemUser;
     private Admin systemAdmin;
+    private List<Plan> plans;
 
     public Loader(String email, String password) {
         this.email = email;
         this.password = password;
+    }
+
+    private void createRandomUsers() {
+        for (int i = 0; i < 10; i++) {
+            User user = new User(
+                "user" + i + "@gmail.com",
+                "password" + i,
+                DocumentType.CC,
+                "1234567890" + i,
+                Gateway.PROJECT_GATEWAY
+            );
+            // add credit card
+            Card card = GatewaysFactory.getGateway(Gateway.PROJECT_GATEWAY).addCreditCard(
+                "5434567890111213",
+                user.getEmail(),
+                "02/35",
+                "123"
+            );
+            user.addCreditCard(card);
+            // add subscription
+            user.addSubscription(plans.get(i % 4));
+            Repository.save(user);
+        }
     }
 
     public void loadData() {
@@ -31,6 +56,7 @@ public class Loader {
         Plan smart = new Plan("Smart","Books, Music",80);
         Plan basic = new Plan("Basic","Videos",50);
         Plan essential = new Plan("Essential","Music",50);
+        this.plans = List.of(advanced, smart, basic, essential);
         Repository.save(advanced);
         Repository.save(smart);
         Repository.save(basic);
@@ -78,6 +104,7 @@ public class Loader {
         Repository.save(user);
         this.systemUser = user;
         this.systemAdmin = admin;
+        createRandomUsers();
     }
 
     public static Customer loadCustomer(String email, String password, String type) {

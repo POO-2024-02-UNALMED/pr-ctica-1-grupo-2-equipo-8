@@ -29,8 +29,6 @@ public class Main {
         "Exit"
     };
 
-    static final String INVALID_OPTION_MESSAGE = "Invalid option, please select a valid option";
-
     static Customer login () {
         String email = Command.askString("Enter your email: ");
         String password = Command.askForPassword("Enter your password: ");
@@ -40,19 +38,6 @@ public class Main {
             return login();
         }
         return customer;
-    }
-
-    static Card addCreditCard() {
-        String cardNumber = Command.askString("Enter the your credit card number");
-        String cardHolder = Command.askString("Enter the card holder name");
-        String expirationDate = Command.askString("Enter the due date of your credit card (MM/YY)");
-        String cvv = Command.askString("Enter the CVV of your credit card");
-        if (!ProjectGateway.validate(cardNumber, cardHolder, expirationDate, cvv)) {
-            Command.logLn("Invalid credit card information");
-            return addCreditCard();
-        }
-        ProjectGateway projectGateway = new ProjectGateway();
-        return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv);
     }
 
     static Transaction processTransaction(User user, Card card, double price, String description) {
@@ -85,6 +70,19 @@ public class Main {
         return transaction;
     }
 
+    static Card addCreditCard() {
+        String cardNumber = Command.askString("Enter the your credit card number");
+        String cardHolder = Command.askString("Enter the card holder name");
+        String expirationDate = Command.askString("Enter the due date of your credit card (MM/YY)");
+        String cvv = Command.askString("Enter the CVV of your credit card");
+        if (!ProjectGateway.validate(cardNumber, cardHolder, expirationDate, cvv)) {
+            Command.logLn("Invalid credit card information");
+            return addCreditCard();
+        }
+        ProjectGateway projectGateway = (ProjectGateway) GatewaysFactory.getGateway(Gateway.PROJECT_GATEWAY);
+        return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv);
+    }
+
     static void addSubscription(User user) {
         List<Plan> plans = Plan.getAll();
         List<Plan> userPlans = user.getUserSubscribedPlans();
@@ -100,6 +98,7 @@ public class Main {
                 nonSubscribePlans.add(plans.get(i));
             }
         }
+
         if(nonSubscribePlans.isEmpty()) {
             Printer.showUserSubscriptions(user.getSubscriptions(), "You are already subscribed to all available plans", true);
             return;
