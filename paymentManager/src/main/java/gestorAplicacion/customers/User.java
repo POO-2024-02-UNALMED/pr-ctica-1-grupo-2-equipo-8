@@ -16,7 +16,6 @@ import gestorAplicacion.transactions.Transaction;
 import gestorAplicacion.transactions.TransactionStatus;
 
 public class User extends Customer {
-    private List<Card> creditCards;
     private Gateway gateway;
     private static final long serialVersionUID = 1L;
     // use transient to avoid serialization of this field
@@ -25,7 +24,6 @@ public class User extends Customer {
 
     public User(String email, String password, DocumentType documentType, String documentId, Gateway gateway) {
         super(email, password, documentType, documentId);
-        creditCards = new ArrayList<>();
         this.gateway = gateway;
     }
 
@@ -126,24 +124,25 @@ public class User extends Customer {
     }
 
     public boolean hasCreditCard() {
-        return !this.creditCards.isEmpty();
+        return !Repository.loadAllObjectInDirectory(documentNumber).isEmpty();
     }
 
     public boolean addCreditCard(Card card) {
-        this.creditCards.add(card);
-        Repository.update(this);
+        Repository.save(card, "Card" + File.separator + this.getId());
         return true;
     }
 
     public void removeCreditCard(Card card) {
-        if (card != null) {
-            card.delete();
-            this.creditCards.remove(card);
-        }
+        Repository.delete(card, "Card" + File.separator + this.getId());
     }
 
     public List<Card> getCreditCards() {
-        return this.creditCards;
+        List<WithId> cards = Repository.loadAllObjectInDirectory("Card" + File.separator + this.getId());
+        List<Card> userCards = new ArrayList<>();
+        for (WithId card : cards) {
+            userCards.add((Card) card);
+        }
+        return userCards;
     }
 
     public Gateway getGateway() {

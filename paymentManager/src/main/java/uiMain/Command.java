@@ -50,6 +50,7 @@ public abstract class Command {
             logLn(INVALID_OPTION_MESSAGE);
             return askForSelection(message, options);
         }
+        logLn();
         return selection;
     }
 
@@ -63,7 +64,7 @@ public abstract class Command {
             logLn(INVALID_OPTION_MESSAGE);
             return askForSelection(message, options);
         }
-        logLn("");
+        logLn();
         return selection;
     }
 
@@ -74,7 +75,7 @@ public abstract class Command {
             logLn(INVALID_OPTION_MESSAGE);
             return askForSelectionOnTableFormat(message, headers, rows);
         }
-        logLn("");
+        logLn();
         return selection;
     }
 

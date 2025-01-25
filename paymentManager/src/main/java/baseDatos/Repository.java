@@ -15,14 +15,14 @@ import java.util.logging.Logger;
 import gestorAplicacion.WithId;
 
 public class Repository {
-    private Repository() {
-        // Private constructor to hide the implicit public one
-    }
-
     private static final Logger LOGGER = Logger.getLogger(Repository.class.getName());
     private static final String ROOT_DIRECTORY = System.getProperty("user.dir");
     private static final String TEMP_DIRECTORY_RELATIVE_PATH = System.getProperty("temp.directory.relative.path", "/PaymentManager/src/main/java/baseDatos/temp/");
     private static final String TEMP_DIRECTORY_ABS_PATH_STRING = ROOT_DIRECTORY + (new File(TEMP_DIRECTORY_RELATIVE_PATH)).getPath();
+
+    private Repository() {
+        // Private constructor to hide the implicit public one
+    }
 
     public static void createDirectory(File directory) {
         if (!directory.exists()) {
@@ -92,8 +92,8 @@ public class Repository {
         return object;
     }
 
-    public static boolean delete(WithId object) {
-        File file = new File(getObjectFilePath(object, null));
+    public static boolean delete(WithId object, String path) {
+        File file = new File(getObjectFilePath(object, path));
         if (file.exists()) {
             try {
                 Files.delete(file.toPath());
@@ -105,6 +105,10 @@ public class Repository {
         }
 
         return false;
+    }
+
+    public static boolean delete(WithId object) {
+        return delete(object, null);
     }
 
     private static boolean updateObject(WithId object, String objectPath) {
@@ -119,8 +123,6 @@ public class Repository {
                 return false;
             }
         }
-        System.out.println("File not found");
-        System.err.println(file.getAbsolutePath());
         return false;
     }
 
@@ -150,5 +152,9 @@ public class Repository {
         }
 
         return objects;
+    }
+
+    public static void setDebugMode(boolean debug) {
+        LOGGER.setLevel(debug ? java.util.logging.Level.ALL : java.util.logging.Level.OFF);
     }
 }

@@ -1,5 +1,9 @@
 package gestorAplicacion.gateways;
 
+import java.io.File;
+
+import baseDatos.Repository;
+import gestorAplicacion.customers.User;
 import gestorAplicacion.transactions.Card;
 import gestorAplicacion.transactions.Transaction;
 import gestorAplicacion.transactions.TransactionStatus;
@@ -36,16 +40,21 @@ public class ProjectGateway extends Authenticate implements IGateway {
         return tokenBuilder.toString();
     }
 
-    public Card addCreditCard(String cardNumber, String cardHolder, String expirationDate, String cvv) {
+    public Card addCreditCard(String cardNumber, String cardHolder, String expirationDate, String cvv, User user) {
         if (!validate(cardNumber, cardHolder, expirationDate, cvv)) {
             return null;
         }
-        return new Card(
+        Card card = new Card(
             cardNumber.substring(cardNumber.length() - 4, cardNumber.length()),
             expirationDate,
             Card.getFranchise(cardNumber),
-            generateCardToken(cardNumber, cardHolder, expirationDate), Gateway.PROJECT_GATEWAY
+            generateCardToken(cardNumber, cardHolder, expirationDate), Gateway.PROJECT_GATEWAY,
+            user
         );
+
+        Repository.save(card, "Card" + File.separator + user.getId());
+
+        return card;
     }
 
     public boolean deleteCard(Card card) {

@@ -93,6 +93,7 @@ public abstract class Printer {
         if (!userInactiveSubscriptions.isEmpty()) {
             Command.logLn("The Following Subscriptions will be suspended after its next charge date ");
             Table.print(subsHeaders, subscriptionsToShow);
+            Command.logLn();
         }
     }
 
@@ -110,6 +111,7 @@ public abstract class Printer {
                 "The following subscriptions are near to their next charge date",
                 true
             );
+            Command.logLn();
         }
     }
 }

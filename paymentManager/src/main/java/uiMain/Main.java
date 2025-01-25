@@ -70,17 +70,18 @@ public class Main {
         return transaction;
     }
 
-    static Card addCreditCard() {
+    static Card addCreditCard(User user) {
         String cardNumber = Command.askString("Enter the your credit card number");
         String cardHolder = Command.askString("Enter the card holder name");
         String expirationDate = Command.askString("Enter the due date of your credit card (MM/YY)");
         String cvv = Command.askString("Enter the CVV of your credit card");
+        Command.logLn();
         if (!ProjectGateway.validate(cardNumber, cardHolder, expirationDate, cvv)) {
             Command.logLn("Invalid credit card information");
-            return addCreditCard();
+            return addCreditCard(user);
         }
         ProjectGateway projectGateway = (ProjectGateway) GatewaysFactory.getGateway(Gateway.PROJECT_GATEWAY);
-        return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv);
+        return projectGateway.addCreditCard(cardNumber, cardHolder, expirationDate, cvv, user);
     }
 
     static void addSubscription(User user) {
@@ -109,7 +110,7 @@ public class Main {
         List<Card> creditCards = user.getCreditCards();
         if (creditCards.isEmpty()) {
             Command.logLn("You need to add a credit card to subscribe to a plan");
-            user.addCreditCard(addCreditCard());
+            user.addCreditCard(addCreditCard(user));
         }
 
         Card selectedCard = Printer.showCardsInfo(creditCards, "Select the credit card you want to use", false);
@@ -134,7 +135,7 @@ public class Main {
     }
 
     static void addUserCreditCard(User user) {
-        Card cardToAdd = addCreditCard();
+        Card cardToAdd = addCreditCard(user);
         Transaction verificationTransaction = processTransaction(user, cardToAdd, 1, "Credit card Validation");
         if (verificationTransaction.getStatus() != TransactionStatus.ACCEPTED) {
             Command.logLn("Invalid credit card");
@@ -151,8 +152,12 @@ public class Main {
             "Select the subscription you want to change the payment method",
             false
         );
-        Card newCard = addCreditCard();
-        boolean paymentMethodChanged = selectedSubscription.upsertPaymentMethod(newCard);
+        Card selectedCard = Printer.showCardsInfo(
+            user.getCreditCards(),
+            "Select the credit card you want to use",
+            false
+        );
+        boolean paymentMethodChanged = selectedSubscription.upsertPaymentMethod(selectedCard);
         Command.log(new String [] {"Payment method changed successfully", "Error changing payment method"}, paymentMethodChanged);
     }
 
@@ -193,10 +198,8 @@ public class Main {
     static void run(User user, Admin admin) {
         Command.logLn("#".repeat(100));
         Printer.showInactiveSubscriptionNotification(user);
-        Command.logLn();
         Printer.showSubscriptionsNearToChargeDate(user);
-        Command.logLn();
-        int feature = Command.askForSelection("Select function", FEATURES);
+        int feature = Command.askForSelection("What will you do?", FEATURES);
         switch (feature) {
             case 0:
                 addSubscription(user);
@@ -234,7 +237,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Loader loader = new Loader("JDoe", "PASS");
+        Loader loader = new Loader("JDoe", "PASS", true);
         loader.loadData();
 
         // LOGIN
